@@ -1,9 +1,8 @@
 "use client";
-
 import React from 'react';
 import { motion } from 'framer-motion';
 import { 
-  PieChart, DollarSign, ArrowUpRight, ArrowDownRight, 
+  PieChart, Sparkles, DollarSign, ArrowUpRight, ArrowDownRight, 
   Plane, Hotel, Utensils, Activity, Plus,
   CreditCard, Wallet, TrendingUp, Compass
 } from 'lucide-react';
