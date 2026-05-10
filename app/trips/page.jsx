@@ -1,12 +1,15 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
+import { supabase } from '@/lib/supabase';
+import { useDeleteTrip } from '@/hooks/useTripMutations';
 import { useTrips } from '@/hooks/useTrips';
 
 // TODO: Replace with real auth session userId before production
-const DEMO_USER_ID = process.env.NEXT_PUBLIC_DEMO_USER_ID || "demo-user";
+const DEMO_USER_ID = process.env.NEXT_PUBLIC_DEMO_USER_ID || '11111111-1111-1111-1111-111111111111';
 
 function formatDateRange(startDate, endDate) {
   if (!startDate && !endDate) {
@@ -21,8 +24,55 @@ function formatDateRange(startDate, endDate) {
 }
 
 export default function MyTrips() {
+  const router = useRouter();
   const [filter, setFilter] = useState('All Trips');
-  const { trips, loading, error, refetch } = useTrips(DEMO_USER_ID);
+  const [userId, setUserId] = useState(DEMO_USER_ID);
+  const { trips, loading, error, refetch } = useTrips(userId);
+  const { deleteTrip, loading: deleteLoading, error: deleteError } = useDeleteTrip();
+  const visibleTrips = useMemo(
+    () => trips.filter((trip) => filter === 'All Trips' || (trip.status || 'Upcoming') === filter),
+    [filter, trips],
+  );
+
+  useEffect(() => {
+    let mounted = true;
+
+    async function loadUser() {
+      const { data: { user } } = await supabase.auth.getUser();
+
+      if (mounted && user?.id) {
+        setUserId(user.id);
+      }
+    }
+
+    void loadUser();
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  async function handleDeleteTrip(id) {
+    try {
+      await deleteTrip(id);
+      refetch();
+    } catch (deleteTripError) {
+      console.error('Failed to delete trip:', deleteTripError);
+    }
+  }
+
+  async function handleLogout(event) {
+    event.preventDefault();
+
+    const { error: logoutError } = await supabase.auth.signOut();
+
+    if (logoutError) {
+      console.error('Logout error:', logoutError.message);
+      return;
+    }
+
+    router.push('/login');
+  }
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -100,7 +150,7 @@ export default function MyTrips() {
           </nav>
           <div className="sidebar-bottom">
             <Link href="/profile" className="nav-item">Settings</Link>
-            <Link href="/" className="nav-item" style={{ color: '#ff6b6b' }}>Log Out</Link>
+            <Link href="/login" className="nav-item" style={{ color: '#ff6b6b' }} onClick={handleLogout}>Log Out</Link>
           </div>
         </aside>
 
@@ -129,6 +179,12 @@ export default function MyTrips() {
               </motion.div>
             )}
 
+            {deleteError && (
+              <motion.div variants={itemVariants} className="state-card">
+                <p style={{ color: 'var(--text-muted)' }}>{deleteError}</p>
+              </motion.div>
+            )}
+
             {!loading && !error && trips.length === 0 && (
               <motion.div variants={itemVariants} className="state-card">
                 <p style={{ color: 'var(--text-muted)', marginBottom: 16 }}>No trips found.</p>
@@ -138,7 +194,7 @@ export default function MyTrips() {
 
             {!loading && !error && trips.length > 0 && (
               <motion.div variants={itemVariants} className="trips-grid">
-                {trips.map((trip) => (
+                {visibleTrips.map((trip) => (
                   <div key={trip.id} className="trip-card">
                     <div className="trip-img-wrapper">
                       <img src={`https://source.unsplash.com/600x400/?${encodeURIComponent(trip.destination || trip.title || 'travel')}`} alt={trip.title} className="trip-img" />
@@ -153,6 +209,9 @@ export default function MyTrips() {
                       <Link href={`/trips/${trip.id}`} className="action-btn view">View</Link>
                       <div className="action-group">
                         <Link href={`/trips/${trip.id}/edit`} className="action-btn">Edit</Link>
+                        <button type="button" className="action-btn" onClick={() => handleDeleteTrip(trip.id)} disabled={deleteLoading}>
+                          {deleteLoading ? 'Deleting...' : 'Delete'}
+                        </button>
                       </div>
                     </div>
                   </div>

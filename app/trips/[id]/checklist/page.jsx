@@ -5,11 +5,11 @@ export default function PackingChecklist({ params }) {
     <div className="container animate-fade-in">
       <div className="page-header flex-between">
         <div>
-          <Link href="/trips/1" style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '1rem', display: 'inline-block' }}>← Back to Itinerary</Link>
+          <Link href={`/trips/${params.id}`} style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '1rem', display: 'inline-block' }}>← Back to Itinerary</Link>
           <h1 className="page-title">Packing Checklist</h1>
           <p style={{ color: 'var(--text-muted)' }}>Euro Trip (Oct 12 - Oct 25)</p>
         </div>
-        <button className="btn btn-primary">+ Add Item</button>
+        <button type="button" className="btn btn-primary">+ Add Item</button>
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem', marginTop: '2rem' }}>

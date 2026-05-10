@@ -1,8 +1,10 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
+import { supabase } from '@/lib/supabase';
 import { useTrips } from '@/hooks/useTrips';
 import { 
   Sparkles, Wand2, CheckCircle2, DollarSign, 
@@ -10,7 +12,7 @@ import {
 } from 'lucide-react';
 
 // TODO: Replace with real auth session userId before production
-const DEMO_USER_ID = process.env.NEXT_PUBLIC_DEMO_USER_ID || "demo-user";
+const DEMO_USER_ID = process.env.NEXT_PUBLIC_DEMO_USER_ID || '11111111-1111-1111-1111-111111111111';
 
 function formatDateRange(startDate, endDate) {
   if (!startDate && !endDate) {
@@ -25,9 +27,42 @@ function formatDateRange(startDate, endDate) {
 }
 
 export default function UserDashboard() {
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState('dashboard');
-  const { trips, loading, error, refetch } = useTrips(DEMO_USER_ID);
+  const [userId, setUserId] = useState(DEMO_USER_ID);
+  const { trips, loading, error, refetch } = useTrips(userId);
   const upcomingTrips = trips.slice(0, 3);
+
+  useEffect(() => {
+    let mounted = true;
+
+    async function loadUser() {
+      const { data: { user } } = await supabase.auth.getUser();
+
+      if (mounted && user?.id) {
+        setUserId(user.id);
+      }
+    }
+
+    void loadUser();
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  async function handleLogout(event) {
+    event.preventDefault();
+
+    const { error: logoutError } = await supabase.auth.signOut();
+
+    if (logoutError) {
+      console.error('Logout error:', logoutError.message);
+      return;
+    }
+
+    router.push('/login');
+  }
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -110,7 +145,7 @@ export default function UserDashboard() {
             <Link href="/profile" className="nav-item">
               <Settings size={20} /> Settings
             </Link>
-            <Link href="/" className="nav-item" style={{ color: '#ff6b6b' }}>
+            <Link href="/login" className="nav-item" style={{ color: '#ff6b6b' }} onClick={handleLogout}>
               <LogOut size={20} /> Log Out
             </Link>
           </div>

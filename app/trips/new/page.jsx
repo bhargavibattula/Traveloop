@@ -5,9 +5,10 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { createTrip } from '@/services/trip.service';
+import { supabase } from '@/lib/supabase';
 
 // TODO: Replace with real auth session userId before production
-const DEMO_USER_ID = process.env.NEXT_PUBLIC_DEMO_USER_ID || "demo-user";
+const DEMO_USER_ID = process.env.NEXT_PUBLIC_DEMO_USER_ID || '11111111-1111-1111-1111-111111111111';
 
 export default function CreateTrip() {
   const router = useRouter();
@@ -35,8 +36,11 @@ export default function CreateTrip() {
     const budgetValue = formData.get('budget');
 
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      const userId = user?.id || DEMO_USER_ID;
+
       const trip = await createTrip({
-        user_id: DEMO_USER_ID,
+        user_id: userId,
         title: String(formData.get('title') || '').trim(),
         description: String(formData.get('description') || '').trim(),
         start_date: String(formData.get('start_date') || ''),

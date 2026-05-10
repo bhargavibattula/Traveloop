@@ -16,7 +16,7 @@ export default function UserProfile() {
           <div>
             <h2 style={{ fontSize: '1.8rem' }}>John Doe</h2>
             <p style={{ color: 'var(--text-muted)' }}>john.doe@example.com</p>
-            <button className="btn btn-outline" style={{ marginTop: '0.5rem', padding: '0.4rem 1rem', fontSize: '0.9rem' }}>Change Avatar</button>
+            <button type="button" className="btn btn-outline" style={{ marginTop: '0.5rem', padding: '0.4rem 1rem', fontSize: '0.9rem' }}>Change Avatar</button>
           </div>
         </div>
 
@@ -52,8 +52,8 @@ export default function UserProfile() {
           </div>
 
           <div className="flex-between" style={{ marginTop: '3rem' }}>
-            <button className="btn btn-outline" style={{ color: 'var(--danger)', borderColor: 'var(--danger)' }}>Delete Account</button>
-            <button className="btn btn-primary">Save Changes</button>
+            <button type="button" className="btn btn-outline" style={{ color: 'var(--danger)', borderColor: 'var(--danger)' }}>Delete Account</button>
+            <button type="button" className="btn btn-primary">Save Changes</button>
           </div>
         </form>
       </div>
