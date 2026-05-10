@@ -1,0 +1,47 @@
+{"timestamp":"00:00:00.774","source":"Server","level":"LOG","message":""}
+{"timestamp":"00:00:07.636","source":"Browser","level":"INFO","message":"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"}
+{"timestamp":"00:00:07.696","source":"Browser","level":"WARN","message":"Image with src \"http://localhost:3000/vercel.svg\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio."}
+{"timestamp":"00:00:07.712","source":"Server","level":"WARN","message":"[browser] \"\\u001b[33mImage with src \\\"http://localhost:3000/vercel.svg\\\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \\\"auto\\\"' or 'height: \\\"auto\\\"' to maintain the aspect ratio.\\u001b[39m\""}
+{"timestamp":"00:00:07.713","source":"Browser","level":"WARN","message":"\u001b[33mImage with src \"http://localhost:3000/vercel.svg\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.\u001b[39m"}
+{"timestamp":"00:00:07.746","source":"Browser","level":"INFO","message":"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"}
+{"timestamp":"00:00:07.828","source":"Browser","level":"INFO","message":"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"}
+{"timestamp":"00:00:08.372","source":"Server","level":"WARN","message":"[browser] \"\\u001b[33mImage with src \\\"http://localhost:3000/vercel.svg\\\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \\\"auto\\\"' or 'height: \\\"auto\\\"' to maintain the aspect ratio.\\u001b[39m\""}
+{"timestamp":"00:00:08.373","source":"Browser","level":"WARN","message":"\u001b[33mImage with src \"http://localhost:3000/vercel.svg\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.\u001b[39m"}
+{"timestamp":"00:00:08.374","source":"Browser","level":"WARN","message":"Image with src \"http://localhost:3000/vercel.svg\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio."}
+{"timestamp":"00:05:39.238","source":"Server","level":"ERROR","message":"Error: ENOENT: no such file or directory, scandir 'D:\\travel-loop\\app'"}
+{"timestamp":"00:05:39.243","source":"Server","level":"ERROR","message":"⨯ \"unhandledRejection:\" Error: ENOENT: no such file or directory, scandir 'D:\\travel-loop\\app'"}
+{"timestamp":"00:05:39.246","source":"Server","level":"ERROR","message":"⨯ \"unhandledRejection: \" Error: ENOENT: no such file or directory, scandir 'D:\\travel-loop\\app'"}
+{"timestamp":"00:05:39.315","source":"Server","level":"ERROR","message":"Error: ENOENT: no such file or directory, scandir 'D:\\travel-loop\\app'"}
+{"timestamp":"00:05:39.318","source":"Server","level":"ERROR","message":"Error: ENOENT: no such file or directory, scandir 'D:\\travel-loop\\app'"}
+{"timestamp":"00:05:39.327","source":"Server","level":"ERROR","message":"Error: ENOENT: no such file or directory, scandir 'D:\\travel-loop\\app'"}
+{"timestamp":"00:05:39.330","source":"Server","level":"ERROR","message":"Error: ENOENT: no such file or directory, scandir 'D:\\travel-loop\\app'"}
+{"timestamp":"00:05:39.337","source":"Server","level":"ERROR","message":"Error: ENOENT: no such file or directory, scandir 'D:\\travel-loop\\app'"}
+{"timestamp":"00:05:39.340","source":"Server","level":"ERROR","message":"Error: ENOENT: no such file or directory, scandir 'D:\\travel-loop\\app'"}
+{"timestamp":"00:05:39.346","source":"Server","level":"ERROR","message":"Error: ENOENT: no such file or directory, scandir 'D:\\travel-loop\\app'"}
+{"timestamp":"00:05:39.348","source":"Server","level":"ERROR","message":"Error: ENOENT: no such file or directory, scandir 'D:\\travel-loop\\app'"}
+{"timestamp":"00:05:39.355","source":"Server","level":"ERROR","message":"Error: ENOENT: no such file or directory, scandir 'D:\\travel-loop\\app'"}
+{"timestamp":"00:05:39.357","source":"Server","level":"ERROR","message":"Error: ENOENT: no such file or directory, scandir 'D:\\travel-loop\\app'"}
+{"timestamp":"00:05:39.361","source":"Server","level":"ERROR","message":"Error: ENOENT: no such file or directory, scandir 'D:\\travel-loop\\app'"}
+{"timestamp":"00:05:39.364","source":"Server","level":"ERROR","message":"Error: ENOENT: no such file or directory, scandir 'D:\\travel-loop\\app'"}
+{"timestamp":"00:05:39.369","source":"Server","level":"ERROR","message":"Error: ENOENT: no such file or directory, scandir 'D:\\travel-loop\\app'"}
+{"timestamp":"00:05:39.371","source":"Server","level":"ERROR","message":"Error: ENOENT: no such file or directory, scandir 'D:\\travel-loop\\app'"}
+{"timestamp":"00:05:39.376","source":"Server","level":"ERROR","message":"Error: ENOENT: no such file or directory, scandir 'D:\\travel-loop\\app'"}
+{"timestamp":"00:05:39.378","source":"Server","level":"ERROR","message":"Error: ENOENT: no such file or directory, scandir 'D:\\travel-loop\\app'"}
+{"timestamp":"00:05:39.383","source":"Server","level":"ERROR","message":"Error: ENOENT: no such file or directory, scandir 'D:\\travel-loop\\app'"}
+{"timestamp":"00:05:39.385","source":"Server","level":"ERROR","message":"Error: ENOENT: no such file or directory, scandir 'D:\\travel-loop\\app'"}
+{"timestamp":"00:05:39.390","source":"Server","level":"ERROR","message":"Error: ENOENT: no such file or directory, scandir 'D:\\travel-loop\\app'"}
+{"timestamp":"00:05:39.392","source":"Server","level":"ERROR","message":"Error: ENOENT: no such file or directory, scandir 'D:\\travel-loop\\app'"}
+{"timestamp":"00:05:39.396","source":"Server","level":"ERROR","message":"Error: ENOENT: no such file or directory, scandir 'D:\\travel-loop\\app'"}
+{"timestamp":"00:05:39.398","source":"Server","level":"ERROR","message":"Error: ENOENT: no such file or directory, scandir 'D:\\travel-loop\\app'"}
+{"timestamp":"00:05:39.403","source":"Server","level":"ERROR","message":"Error: ENOENT: no such file or directory, scandir 'D:\\travel-loop\\app'"}
+{"timestamp":"00:05:39.405","source":"Server","level":"ERROR","message":"Error: ENOENT: no such file or directory, scandir 'D:\\travel-loop\\app'"}
+{"timestamp":"00:05:39.410","source":"Server","level":"ERROR","message":"Error: ENOENT: no such file or directory, scandir 'D:\\travel-loop\\app'"}
+{"timestamp":"00:05:39.412","source":"Server","level":"ERROR","message":"Error: ENOENT: no such file or directory, scandir 'D:\\travel-loop\\app'"}
+{"timestamp":"00:05:39.417","source":"Server","level":"ERROR","message":"Error: ENOENT: no such file or directory, scandir 'D:\\travel-loop\\app'"}
+{"timestamp":"00:05:39.419","source":"Server","level":"ERROR","message":"Error: ENOENT: no such file or directory, scandir 'D:\\travel-loop\\app'"}
+{"timestamp":"00:05:39.425","source":"Server","level":"ERROR","message":"Error: ENOENT: no such file or directory, scandir 'D:\\travel-loop\\app'"}
+{"timestamp":"00:05:39.427","source":"Server","level":"ERROR","message":"Error: ENOENT: no such file or directory, scandir 'D:\\travel-loop\\app'"}
+{"timestamp":"00:05:39.430","source":"Server","level":"ERROR","message":"Error: ENOENT: no such file or directory, scandir 'D:\\travel-loop\\app'"}
+{"timestamp":"00:05:39.433","source":"Server","level":"ERROR","message":"Error: ENOENT: no such file or directory, scandir 'D:\\travel-loop\\app'"}
+{"timestamp":"00:05:39.442","source":"Server","level":"ERROR","message":"Error: ENOENT: no such file or directory, scandir 'D:\\travel-loop\\app'"}
+{"timestamp":"00:05:39.445","source":"Server","level":"ERROR","message":"Error: ENOENT: no such file or directory, scandir 'D:\\travel-loop\\app'"}
