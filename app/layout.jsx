@@ -1,4 +1,5 @@
 import './globals.css';
+import FloatingAI from './components/FloatingAI';
 
 export const metadata = {
   title: 'Traveloop — Discover the Best Place',
@@ -10,6 +11,7 @@ export default function RootLayout({ children }) {
     <html lang="en">
       <body>
         {children}
+        <FloatingAI />
       </body>
     </html>
   );
