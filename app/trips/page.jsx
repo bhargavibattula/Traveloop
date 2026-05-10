@@ -4,9 +4,9 @@ import React, { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { supabase } from '@/lib/supabase';
 import { useDeleteTrip } from '@/hooks/useTripMutations';
 import { useTrips } from '@/hooks/useTrips';
+import { supabase } from '@/lib/supabase';
 
 // TODO: Replace with real auth session userId before production
 const DEMO_USER_ID = process.env.NEXT_PUBLIC_DEMO_USER_ID || '11111111-1111-1111-1111-111111111111';
