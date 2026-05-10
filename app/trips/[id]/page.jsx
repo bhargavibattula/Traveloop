@@ -1,11 +1,13 @@
 "use client";
 
-import { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
-import { supabase } from '@/lib/supabase';
+import { motion } from 'framer-motion';
 import { useActivityMutations } from '@/hooks/useActivities';
 import { useStopMutations } from '@/hooks/useStops';
 import { useTripById } from '@/hooks/useTrips';
+import { fetchActivitiesByStop } from '@/services/activity.service';
+import { fetchStopsByTrip } from '@/services/stop.service';
 
 function formatDateRange(startDate, endDate) {
   if (!startDate && !endDate) {
@@ -36,12 +38,8 @@ export default function ItineraryView({ params }) {
   const { id } = params;
   const { trip, loading, error, refetch } = useTripById(id);
   const { addStop, deleteStop, loading: stopLoading, error: stopError } = useStopMutations();
-  const {
-    addActivity,
-    removeActivity,
-    loading: activityLoading,
-    error: activityError,
-  } = useActivityMutations();
+  const { addActivity, removeActivity, loading: activityLoading, error: activityError } = useActivityMutations();
+  const [viewMode, setViewMode] = useState('list');
   const [stops, setStops] = useState([]);
   const [activitiesByStop, setActivitiesByStop] = useState({});
   const [relatedLoading, setRelatedLoading] = useState(false);
@@ -51,7 +49,7 @@ export default function ItineraryView({ params }) {
   const [refreshKey, setRefreshKey] = useState(0);
 
   const refetchPage = useCallback(async () => {
-    await refetch();
+    refetch();
     setRefreshKey((currentKey) => currentKey + 1);
   }, [refetch]);
 
@@ -69,49 +67,28 @@ export default function ItineraryView({ params }) {
       setRelatedError(null);
 
       try {
-        const { data: fetchedStops, error: stopsError } = await supabase
-          .from('trip_stops')
-          .select('*')
-          .eq('trip_id', id)
-          .order('position', { ascending: true });
+        const fetchedStops = await fetchStopsByTrip(id);
+        const activityGroups = {};
+        const activityErrors = [];
 
-        if (stopsError) {
-          throw new Error(stopsError.message);
-        }
-
-        const stopIds = (fetchedStops || []).map((stop) => stop.id);
-        let fetchedActivities = [];
-
-        if (stopIds.length > 0) {
-          const { data: activityData, error: activitiesError } = await supabase
-            .from('trip_activities')
-            .select('*')
-            .in('stop_id', stopIds)
-            .order('position', { ascending: true });
-
-          if (activitiesError) {
-            throw new Error(activitiesError.message);
-          }
-
-          fetchedActivities = activityData || [];
-        }
+        await Promise.all(
+          fetchedStops.map(async (stop) => {
+            try {
+              activityGroups[stop.id] = await fetchActivitiesByStop(stop.id);
+            } catch (activityFetchError) {
+              activityGroups[stop.id] = [];
+              activityErrors.push(activityFetchError);
+            }
+          }),
+        );
 
         if (mounted) {
-          setStops(fetchedStops || []);
-          setActivitiesByStop(
-            fetchedActivities.reduce((groupedActivities, activity) => {
-              const stopId = activity.stop_id;
+          setStops(fetchedStops);
+          setActivitiesByStop(activityGroups);
 
-              if (!stopId) {
-                return groupedActivities;
-              }
-
-              return {
-                ...groupedActivities,
-                [stopId]: [...(groupedActivities[stopId] || []), activity],
-              };
-            }, {}),
-          );
+          if (activityErrors.length > 0) {
+            setRelatedError('Some activities failed to load. Stops are still shown.');
+          }
         }
       } catch (fetchError) {
         if (mounted) {
@@ -129,7 +106,7 @@ export default function ItineraryView({ params }) {
     return () => {
       mounted = false;
     };
-  }, [id, refreshKey, trip]);
+  }, [id, refreshKey, trip?.id]);
 
   async function handleAddStop(event) {
     event.preventDefault();
@@ -185,6 +162,9 @@ export default function ItineraryView({ params }) {
       await addActivity({
         stop_id: stopId,
         title,
+        category: 'Activity',
+        cost: 0,
+        duration: '',
         notes,
         position: activitiesByStop[stopId]?.length || 0,
       });
@@ -207,18 +187,20 @@ export default function ItineraryView({ params }) {
     }
   }
 
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    show: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 300, damping: 24 } },
+  };
+
   if (loading) {
-    return (
-      <div className="container animate-fade-in" style={{ textAlign: 'center', paddingTop: '4rem' }}>
-        <p style={{ color: 'var(--text-muted)' }}>Loading trip...</p>
-      </div>
-    );
+    return <div className="container animate-fade-in" style={{ textAlign: 'center', paddingTop: '4rem' }}>Loading trip...</div>;
   }
 
   if (error) {
     return (
       <div className="container animate-fade-in" style={{ textAlign: 'center', paddingTop: '4rem' }}>
-        <p style={{ color: 'var(--text-muted)' }}>Failed to load trip. Please refresh.</p>
+        <p style={{ marginBottom: '1rem' }}>Failed to load trip. Please refresh.</p>
+        <button type="button" className="btn btn-outline" onClick={() => refetch()}>Retry</button>
       </div>
     );
   }
@@ -233,116 +215,115 @@ export default function ItineraryView({ params }) {
   }
 
   return (
-    <div className="animate-up">
-      <header className="section-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
-        <div>
-          <span className="eyebrow">Itinerary Details</span>
-          <h1 className="page-title">{trip.title}</h1>
-          <p className="page-subtitle">{formatDateRange(trip.start_date, trip.end_date)} · {stops.length} Stops</p>
-          {trip.destination && <p className="page-subtitle">{trip.destination}</p>}
-          {trip.description && <p style={{ color: 'var(--slate)', marginTop: '12px', maxWidth: '720px' }}>{trip.description}</p>}
-        </div>
-        <div style={{ display: 'flex', gap: '16px' }}>
-          <Link href={`/trips/${id}/edit`} className="btn btn-secondary">Edit Itinerary</Link>
-          <Link href={`/trips/${id}/budget`} className="btn btn-primary">View Budget</Link>
-        </div>
-      </header>
+    <>
+      <style dangerouslySetInnerHTML={{__html: `
+        :root { --bg-cream:#fffcf9; --bg-peach:#fff0e6; --text-dark:#2b2d42; --text-muted:#8d99ae; --primary:#ff6b6b; --primary-hover:#fa5252; --secondary:#a9a6ff; --border:#f1f3f5; --radius-lg:24px; --radius-md:16px; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Outfit', sans-serif; background-color: var(--bg-cream); color: var(--text-dark); }
+        .main-content { padding: 40px 60px; background: linear-gradient(135deg, var(--bg-cream) 0%, var(--bg-peach) 100%); min-height: 100vh; }
+        .topbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px; }
+        .breadcrumb { display: inline-flex; align-items: center; gap: 8px; color: var(--text-muted); text-decoration: none; font-weight: 600; font-size: 14px; margin-bottom: 8px; }
+        .page-title { font-family: 'Cormorant Garamond', serif; font-size: 36px; font-weight: 700; }
+        .page-subtitle { color: var(--text-muted); margin-top: 8px; }
+        .view-controls { display: flex; background: white; padding: 4px; border-radius: 100px; border: 1px solid var(--border); }
+        .view-btn { padding: 8px 16px; border-radius: 100px; border: none; font-family: inherit; font-weight: 600; font-size: 13px; cursor: pointer; background: transparent; color: var(--text-muted); }
+        .view-btn.active { background: var(--bg-peach); color: var(--primary); }
+        .itinerary-grid { display: grid; grid-template-columns: 240px 1fr; gap: 40px; }
+        .day-nav { position: sticky; top: 40px; height: fit-content; display: flex; flex-direction: column; gap: 12px; }
+        .day-nav-item, .itinerary-card, .state-card { padding: 20px; background: white; border-radius: var(--radius-md); box-shadow: 0 4px 12px rgba(0,0,0,0.02); border: 1px solid transparent; }
+        .itinerary-card { padding: 32px; margin-bottom: 24px; }
+        .activity-row { display: flex; gap: 20px; padding: 18px 0; border-bottom: 1px solid var(--border); }
+        .activity-row:last-child { border-bottom: none; }
+        .activity-dot { width: 36px; height: 36px; border-radius: 50%; background: var(--bg-peach); color: var(--primary); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .btn-primary { background: var(--primary); color: white; padding: 12px 24px; border-radius: 100px; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 15px rgba(255,107,107,0.3); border: none; cursor: pointer; }
+        .btn-primary:disabled, .btn-secondary:disabled { opacity: 0.7; cursor: not-allowed; }
+        .btn-secondary { background: white; color: var(--text-dark); padding: 10px 18px; border-radius: 100px; font-weight: 600; text-decoration: none; display: inline-flex; border: 1px solid var(--border); cursor: pointer; }
+        .input-field { width: 100%; border: 1px solid var(--border); background: #f8f9fa; border-radius: 12px; padding: 10px 12px; font-family: inherit; font-size: 14px; color: var(--text-dark); }
+      `}} />
 
-      <div style={{ display: 'grid', gridTemplateColumns: '280px 1fr', gap: '48px', marginTop: '48px' }}>
-        <aside>
-          <div className="card" style={{ position: 'sticky', top: '48px', padding: '32px' }}>
-            <h3 style={{ fontSize: '24px', marginBottom: '24px' }}>Trip Overview</h3>
-            {relatedLoading && <p style={{ color: 'var(--slate)' }}>Loading stops...</p>}
-            {!relatedLoading && stops.length === 0 && <p style={{ color: 'var(--slate)' }}>No stops added yet.</p>}
-            {!relatedLoading && stops.length > 0 && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                {stops.map((stop) => (
-                  <div key={stop.id} style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
-                    <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--gold)' }}></div>
-                    <div>
-                      <div style={{ fontSize: '13px', color: 'var(--slate)' }}>Stop {getStopOrder(stop) + 1}</div>
-                      <div style={{ fontWeight: '500' }}>{getStopTitle(stop)}</div>
-                    </div>
-                  </div>
-                ))}
+      <main className="main-content">
+        <motion.div variants={itemVariants} initial="hidden" animate="show">
+          <div className="topbar">
+            <div>
+              <Link href="/trips" className="breadcrumb">Back to Trips</Link>
+              <h1 className="page-title">{trip.title}</h1>
+              <p className="page-subtitle">{formatDateRange(trip.start_date, trip.end_date)} · {stops.length} Stops</p>
+              {trip.description && <p className="page-subtitle">{trip.description}</p>}
+            </div>
+            <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+              <div className="view-controls">
+                <button type="button" className={`view-btn ${viewMode === 'list' ? 'active' : ''}`} onClick={() => setViewMode('list')}>List</button>
+                <button type="button" className={`view-btn ${viewMode === 'calendar' ? 'active' : ''}`} onClick={() => setViewMode('calendar')}>Calendar</button>
               </div>
-            )}
-          </div>
-        </aside>
-
-        <section>
-          {relatedError && <p style={{ color: 'var(--danger)', marginBottom: '16px' }}>{relatedError}</p>}
-          {stopError && <p style={{ color: 'var(--danger)', marginBottom: '16px' }}>{stopError}</p>}
-          {activityError && <p style={{ color: 'var(--danger)', marginBottom: '16px' }}>{activityError}</p>}
-
-          <div className="card" style={{ marginBottom: '32px' }}>
-            <h2 style={{ fontSize: '24px', marginBottom: '16px' }}>Add Stop</h2>
-            <form onSubmit={handleAddStop} style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-              <input name="location" type="text" className="input-field" placeholder="Location name" style={{ flex: 1, marginBottom: 0 }} />
-              <button type="submit" className="btn btn-secondary" disabled={stopLoading}>
-                {stopLoading ? 'Saving...' : 'Add Stop'}
-              </button>
-            </form>
-            {stopFormError && <p style={{ color: 'var(--danger)', marginTop: '12px' }}>{stopFormError}</p>}
+              <Link href={`/trips/${id}/edit`} className="btn-secondary">Edit</Link>
+              <Link href={`/trips/${id}/budget`} className="btn-primary">Budget</Link>
+            </div>
           </div>
 
-          {!relatedLoading && stops.map((stop) => {
-            const activities = activitiesByStop[stop.id] || [];
-
-            return (
-              <div key={stop.id} className="card" style={{ borderLeft: '4px solid var(--gold)', marginBottom: '32px' }}>
-                <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
-                  <div>
-                    <h2 style={{ fontSize: '32px' }}>{getStopTitle(stop)}</h2>
-                    <p style={{ color: 'var(--slate)', fontSize: '14px' }}>Stop {getStopOrder(stop) + 1}</p>
-                  </div>
-                  <button type="button" className="btn btn-secondary" onClick={() => handleDeleteStop(stop.id)} disabled={stopLoading}>
-                    {stopLoading ? 'Saving...' : 'Delete Stop'}
-                  </button>
-                </header>
-
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0' }}>
-                  {activities.length === 0 && <p style={{ color: 'var(--slate)', marginBottom: '24px' }}>No activities added yet.</p>}
-                  {activities.map((activity, activityIndex) => (
-                    <div key={activity.id} style={{ display: 'flex', gap: '24px', position: 'relative', paddingBottom: '32px' }}>
-                      {activityIndex < activities.length - 1 && (
-                        <div style={{ position: 'absolute', left: '15px', top: '32px', bottom: '0', width: '2px', background: 'var(--border)' }}></div>
-                      )}
-                      <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: 'var(--ocean-light)', color: 'var(--ocean)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, zIndex: 1 }}>
-                        <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                          <path d="M12 4v16m8-8H4" strokeLinecap="round" strokeLinejoin="round" />
-                        </svg>
-                      </div>
-                      <div style={{ flex: 1 }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '16px' }}>
-                          <div>
-                            <h4 style={{ fontSize: '18px', fontFamily: 'Outfit', fontWeight: '500' }}>{activity.title}</h4>
-                            <p style={{ color: 'var(--slate)', fontSize: '14px' }}>{getActivityDescription(activity)}</p>
-                          </div>
-                          <button type="button" className="btn btn-secondary" onClick={() => handleRemoveActivity(activity.id)} disabled={activityLoading}>
-                            {activityLoading ? 'Saving...' : 'Remove'}
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
+          <div className="itinerary-grid">
+            <aside className="day-nav">
+              {relatedLoading && <div className="day-nav-item">Loading stops...</div>}
+              {!relatedLoading && stops.length === 0 && <div className="day-nav-item">No stops yet</div>}
+              {!relatedLoading && stops.map((stop) => (
+                <div key={stop.id} className="day-nav-item">
+                  <span>Stop {getStopOrder(stop) + 1}</span>
+                  <strong>{getStopTitle(stop)}</strong>
                 </div>
+              ))}
+            </aside>
 
-                <form onSubmit={(event) => handleAddActivity(event, stop.id)} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr auto', gap: '12px', alignItems: 'center', marginTop: '16px' }}>
-                  <input name="title" type="text" className="input-field" placeholder="Activity name" style={{ marginBottom: 0 }} />
-                  <input name="notes" type="text" className="input-field" placeholder="Duration or notes" style={{ marginBottom: 0 }} />
-                  <button type="submit" className="btn btn-secondary" disabled={activityLoading}>
-                    {activityLoading ? 'Saving...' : 'Add Activity'}
-                  </button>
-                  {activityFormErrors[stop.id] && (
-                    <p style={{ color: 'var(--danger)', gridColumn: '1 / -1' }}>{activityFormErrors[stop.id]}</p>
-                  )}
+            <section>
+              {relatedError && <p style={{ color: 'var(--primary)', marginBottom: 16 }}>{relatedError}</p>}
+              {stopError && <p style={{ color: 'var(--primary)', marginBottom: 16 }}>{stopError}</p>}
+              {activityError && <p style={{ color: 'var(--primary)', marginBottom: 16 }}>{activityError}</p>}
+
+              <div className="itinerary-card">
+                <h2 style={{ marginBottom: 16 }}>Add Stop</h2>
+                <form onSubmit={handleAddStop} style={{ display: 'flex', gap: 12 }}>
+                  <input name="location" type="text" className="input-field" placeholder="Location name" />
+                  <button type="submit" className="btn-primary" disabled={stopLoading || relatedLoading}>{stopLoading ? 'Saving...' : 'Add Stop'}</button>
                 </form>
+                {stopFormError && <p style={{ color: 'var(--primary)', marginTop: 12 }}>{stopFormError}</p>}
               </div>
-            );
-          })}
-        </section>
-      </div>
-    </div>
+
+              {!relatedLoading && stops.map((stop) => {
+                const activities = activitiesByStop[stop.id] || [];
+
+                return (
+                  <div key={stop.id} className="itinerary-card">
+                    <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+                      <div>
+                        <h2 style={{ fontSize: 28 }}>{getStopTitle(stop)}</h2>
+                        <p style={{ color: 'var(--text-muted)' }}>Stop {getStopOrder(stop) + 1}</p>
+                      </div>
+                      <button type="button" className="btn-secondary" onClick={() => handleDeleteStop(stop.id)} disabled={stopLoading}>{stopLoading ? 'Saving...' : 'Delete Stop'}</button>
+                    </header>
+
+                    {activities.length === 0 && <p style={{ color: 'var(--text-muted)', marginBottom: 20 }}>No activities added yet.</p>}
+                    {activities.map((activity) => (
+                      <div key={activity.id} className="activity-row">
+                        <div className="activity-dot">+</div>
+                        <div style={{ flex: 1 }}>
+                          <h3 style={{ fontSize: 18 }}>{activity.title}</h3>
+                          <p style={{ color: 'var(--text-muted)' }}>{getActivityDescription(activity)}</p>
+                        </div>
+                        <button type="button" className="btn-secondary" onClick={() => handleRemoveActivity(activity.id)} disabled={activityLoading}>{activityLoading ? 'Saving...' : 'Remove'}</button>
+                      </div>
+                    ))}
+
+                    <form onSubmit={(event) => handleAddActivity(event, stop.id)} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr auto', gap: 12, marginTop: 20 }}>
+                      <input name="title" type="text" className="input-field" placeholder="Activity name" />
+                      <input name="notes" type="text" className="input-field" placeholder="Duration or notes" />
+                      <button type="submit" className="btn-primary" disabled={activityLoading}>{activityLoading ? 'Saving...' : 'Add Activity'}</button>
+                      {activityFormErrors[stop.id] && <p style={{ color: 'var(--primary)', gridColumn: '1 / -1' }}>{activityFormErrors[stop.id]}</p>}
+                    </form>
+                  </div>
+                );
+              })}
+            </section>
+          </div>
+        </motion.div>
+      </main>
+    </>
   );
 }
