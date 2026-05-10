@@ -1,72 +1,119 @@
 import Link from 'next/link';
 
 export default function ItineraryView({ params }) {
+  const day1Activities = [
+    { time: '09:00', title: 'Arrival at Leonardo da Vinci–Fiumicino Airport', category: 'Transport', cost: '$0', icon: 'M5 13l4 4L19 7' },
+    { time: '11:30', title: 'Check-in: Hotel de Russie', category: 'Stay', cost: '$850', icon: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6' },
+    { time: '14:30', title: 'Walking Tour: Spanish Steps & Trevi Fountain', category: 'Activity', cost: '$45', icon: 'M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z M15 11a3 3 0 11-6 0 3 3 0 016 0z' },
+    { time: '19:30', title: 'Welcome Dinner at Aroma Restaurant', category: 'Food', cost: '$180', icon: 'M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707' },
+  ];
+
   return (
-    <div className="container animate-fade-in">
-      <div className="page-header flex-between">
+    <div className="animate-up">
+      <header className="section-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
         <div>
-          <Link href="/dashboard" style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '1rem', display: 'inline-block' }}>← Back to Dashboard</Link>
-          <h1 className="page-title">Euro Trip 2026</h1>
-          <p style={{ color: 'var(--text-muted)' }}>Oct 12 - Oct 25 • 3 Destinations • 2 Travelers</p>
+          <span className="eyebrow">Itinerary Details</span>
+          <h1 className="page-title">Summer in Santorini</h1>
+          <p className="page-subtitle">Aug 12 - Aug 20 · 8 Days · 4 Stops</p>
         </div>
-        <div style={{ display: 'flex', gap: '1rem' }}>
-          <Link href={`/trips/1/edit`} className="btn btn-outline">Edit Itinerary</Link>
-          <Link href={`/trips/1/budget`} className="btn btn-primary">Budget</Link>
-          <Link href={`/trips/1/checklist`} className="btn btn-primary">Checklist</Link>
+        <div style={{ display: 'flex', gap: '16px' }}>
+          <Link href="/trips/1/edit" className="btn btn-secondary">Edit Itinerary</Link>
+          <Link href="/trips/1/budget" className="btn btn-primary">View Budget</Link>
         </div>
-      </div>
+      </header>
 
-      <div style={{ display: 'flex', gap: '2rem', marginTop: '2rem' }}>
-        {/* Sidebar / Timeline */}
-        <div style={{ width: '250px', flexShrink: 0 }}>
-          <div className="glass" style={{ padding: '1.5rem', position: 'sticky', top: '100px' }}>
-            <h3 style={{ marginBottom: '1rem' }}>Destinations</h3>
-            <ul style={{ listStyle: 'none', padding: 0 }}>
-              <li style={{ padding: '0.5rem 0', borderBottom: '1px solid var(--border-color)', color: 'var(--primary-color)' }}>Paris (4 Days)</li>
-              <li style={{ padding: '0.5rem 0', borderBottom: '1px solid var(--border-color)' }}>Amsterdam (3 Days)</li>
-              <li style={{ padding: '0.5rem 0' }}>Berlin (4 Days)</li>
-            </ul>
-          </div>
-        </div>
-
-        {/* Main Itinerary */}
-        <div style={{ flex: 1 }}>
-          <div className="glass" style={{ padding: '2rem', marginBottom: '2rem' }}>
-            <h2 style={{ fontSize: '2rem', marginBottom: '0.5rem', color: 'var(--text-main)' }}>Paris, France</h2>
-            <p style={{ color: 'var(--text-muted)', marginBottom: '2rem' }}>Oct 12 - Oct 15</p>
-
-            {/* Day 1 */}
-            <div style={{ marginBottom: '3rem' }}>
-              <h3 style={{ fontSize: '1.2rem', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                <span style={{ background: 'var(--primary-color)', color: '#fff', padding: '0.2rem 0.8rem', borderRadius: '4px', fontSize: '0.9rem' }}>Day 1</span>
-                <span>Oct 12 - Arrival & Exploration</span>
-              </h3>
-              
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', paddingLeft: '2rem', borderLeft: '2px solid var(--border-color)' }}>
-                <div className="glass" style={{ padding: '1.5rem', display: 'flex', gap: '1.5rem' }}>
-                  <div style={{ width: '80px', flexShrink: 0, fontWeight: '600', color: 'var(--text-muted)' }}>14:00</div>
-                  <div>
-                    <h4 style={{ fontSize: '1.1rem', marginBottom: '0.25rem' }}>Check-in to Hotel</h4>
-                    <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Le Meurice, 228 Rue de Rivoli</p>
-                  </div>
-                  <div style={{ marginLeft: 'auto', fontWeight: '600', color: 'var(--success)' }}>Paid</div>
+      <div style={{ display: 'grid', gridTemplateColumns: '280px 1fr', gap: '48px', marginTop: '48px' }}>
+        {/* Timeline Sidebar */}
+        <aside>
+          <div className="card" style={{ position: 'sticky', top: '48px', padding: '32px' }}>
+            <h3 style={{ fontSize: '24px', marginBottom: '24px' }}>Trip Overview</h3>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+              <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
+                <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--gold)' }}></div>
+                <div>
+                  <div style={{ fontSize: '13px', color: 'var(--slate)' }}>Aug 12 - 15</div>
+                  <div style={{ fontWeight: '500' }}>Rome, Italy</div>
                 </div>
-
-                <div className="glass" style={{ padding: '1.5rem', display: 'flex', gap: '1.5rem' }}>
-                  <div style={{ width: '80px', flexShrink: 0, fontWeight: '600', color: 'var(--text-muted)' }}>16:00</div>
-                  <div>
-                    <h4 style={{ fontSize: '1.1rem', marginBottom: '0.25rem' }}>Eiffel Tower Visit</h4>
-                    <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Sunset viewing and dinner at Madame Brasserie</p>
-                  </div>
-                  <div style={{ marginLeft: 'auto', fontWeight: '600' }}>$120</div>
+              </div>
+              <div style={{ borderLeft: '2px solid var(--border)', marginLeft: '3px', height: '20px' }}></div>
+              <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
+                <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--stone)' }}></div>
+                <div>
+                  <div style={{ fontSize: '13px', color: 'var(--slate)' }}>Aug 15 - 18</div>
+                  <div style={{ fontWeight: '500' }}>Santorini, Greece</div>
+                </div>
+              </div>
+              <div style={{ borderLeft: '2px solid var(--border)', marginLeft: '3px', height: '20px' }}></div>
+              <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
+                <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--stone)' }}></div>
+                <div>
+                  <div style={{ fontSize: '13px', color: 'var(--slate)' }}>Aug 18 - 20</div>
+                  <div style={{ fontWeight: '500' }}>Athens, Greece</div>
                 </div>
               </div>
             </div>
-            
-            {/* Additional days would go here */}
-            <button className="btn btn-outline" style={{ width: '100%' }}>View Full Paris Itinerary</button>
           </div>
-        </div>
+        </aside>
+
+        {/* Itinerary Blocks */}
+        <section>
+          <div className="card" style={{ borderLeft: '4px solid var(--gold)', marginBottom: '32px' }}>
+            <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
+              <div>
+                <h2 style={{ fontSize: '32px' }}>Day 1 · Rome</h2>
+                <p style={{ color: 'var(--slate)', fontSize: '14px' }}>Wednesday, August 12</p>
+              </div>
+              <span className="tag tag-gold">Arrival Day</span>
+            </header>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0' }}>
+              {day1Activities.map((act, i) => (
+                <div key={i} style={{ display: 'flex', gap: '24px', position: 'relative', paddingBottom: '32px' }}>
+                  {/* Timeline Line */}
+                  {i < day1Activities.length - 1 && (
+                    <div style={{ position: 'absolute', left: '15px', top: '32px', bottom: '0', width: '2px', background: 'var(--border)' }}></div>
+                  )}
+                  
+                  {/* Icon Dot */}
+                  <div style={{ 
+                    width: '32px', 
+                    height: '32px', 
+                    borderRadius: '50%', 
+                    background: 'var(--ocean-light)', 
+                    color: 'var(--ocean)', 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'center',
+                    flexShrink: 0,
+                    zIndex: 1
+                  }}>
+                    <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                      <path d={act.icon} strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  </div>
+
+                  {/* Activity Details */}
+                  <div style={{ flex: 1 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                      <div>
+                        <div style={{ fontSize: '13px', color: 'var(--slate)', fontWeight: '500', marginBottom: '2px' }}>{act.time}</div>
+                        <h4 style={{ fontSize: '18px', fontFamily: 'Outfit', fontWeight: '500' }}>{act.title}</h4>
+                      </div>
+                      <span className="mono" style={{ fontSize: '14px', fontWeight: '600', color: 'var(--ink)' }}>{act.cost}</span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <button className="btn btn-secondary" style={{ width: '100%', borderStyle: 'dashed', marginTop: '16px', justifyContent: 'center' }}>
+              <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                <path d="M12 4v16m8-8H4" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+              Add Activity to Day 1
+            </button>
+          </div>
+        </section>
       </div>
     </div>
   );
