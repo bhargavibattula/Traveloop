@@ -197,7 +197,17 @@ export default function MyTrips() {
                 {visibleTrips.map((trip) => (
                   <div key={trip.id} className="trip-card">
                     <div className="trip-img-wrapper">
-                      <img src={`https://source.unsplash.com/600x400/?${encodeURIComponent(trip.destination || trip.title || 'travel')}`} alt={trip.title} className="trip-img" />
+                      <img 
+                        src={
+                          trip.title?.toLowerCase().includes('paris') ? "https://images.unsplash.com/photo-1499856871958-5b9627545d1a?auto=format&fit=crop&q=80&w=600" :
+                          trip.title?.toLowerCase().includes('tokyo') ? "https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?auto=format&fit=crop&q=80&w=600" :
+                          trip.title?.toLowerCase().includes('italy') || trip.title?.toLowerCase().includes('amalfi') ? "https://images.unsplash.com/photo-1533104816931-20fa691ff6ca?auto=format&fit=crop&q=80&w=600" :
+                          trip.title?.toLowerCase().includes('dubai') ? "https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&q=80&w=600" :
+                          "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?auto=format&fit=crop&q=80&w=600"
+                        } 
+                        alt={trip.title} 
+                        className="trip-img" 
+                      />
                       <div className="status-badge">Upcoming</div>
                     </div>
                     <div className="trip-body">

@@ -1,10 +1,10 @@
 "use client";
-import React from 'react';
-import { motion } from 'framer-motion';
+import React, { useState, useMemo } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { 
   PieChart, Sparkles, DollarSign, ArrowUpRight, ArrowDownRight, 
   Plane, Hotel, Utensils, Activity, Plus,
-  CreditCard, Wallet, TrendingUp, Compass
+  CreditCard, Wallet, TrendingUp, Compass, X, Trash2
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -17,17 +17,66 @@ const T = {
   border: '#f1f3f5',
 };
 
-const budgetSummary = [
-  { label: "Flights & Transport", amount: 4200, icon: <Plane size={18} />, color: "#4cc9f0", pct: 45 },
-  { label: "Luxury Stay", amount: 2800, icon: <Hotel size={18} />, color: "#4895ef", pct: 30 },
-  { label: "Dining & Gourmet", amount: 1400, icon: <Utensils size={18} />, color: "#4361ee", pct: 15 },
-  { label: "Activities & Tours", amount: 950, icon: <Activity size={18} />, color: "#3f37c9", pct: 10 },
-];
+const CATEGORIES = {
+  transport: { label: "Flights & Transport", icon: <Plane size={18} />, color: "#4cc9f0" },
+  stay: { label: "Luxury Stay", icon: <Hotel size={18} />, color: "#4895ef" },
+  dining: { label: "Dining & Gourmet", icon: <Utensils size={18} />, color: "#4361ee" },
+  activities: { label: "Activities & Tours", icon: <Activity size={18} />, color: "#3f37c9" },
+};
 
 export default function TripBudget() {
-  const totalBudget = 12450;
-  const totalSpent = 9350;
+  const [expenses, setExpenses] = useState([
+    { id: 1, label: "Air France Tickets", amount: 4200, category: "transport", date: "2026-05-10" },
+    { id: 2, label: "Ritz Paris Deposit", amount: 2800, category: "stay", date: "2026-05-09" },
+    { id: 3, label: "Le Jules Verne Dinner", amount: 1400, category: "dining", date: "2026-05-08" },
+    { id: 4, label: "Private Louvre Tour", amount: 950, category: "activities", date: "2026-05-07" },
+  ]);
+
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [newExpense, setNewExpense] = useState({ label: '', amount: '', category: 'transport' });
+
+  const totalBudget = 15000;
+  
+  const totalSpent = useMemo(() => 
+    expenses.reduce((sum, exp) => sum + Number(exp.amount), 0), 
+  [expenses]);
+
   const remaining = totalBudget - totalSpent;
+
+  const allocation = useMemo(() => {
+    const totals = expenses.reduce((acc, exp) => {
+      acc[exp.category] = (acc[exp.category] || 0) + Number(exp.amount);
+      return acc;
+    }, {});
+
+    return Object.keys(CATEGORIES).map(catKey => ({
+      ...CATEGORIES[catKey],
+      amount: totals[catKey] || 0,
+      pct: totalSpent > 0 ? Math.round(((totals[catKey] || 0) / totalSpent) * 100) : 0
+    }));
+  }, [expenses, totalSpent]);
+
+  const handleAddExpense = (e) => {
+    e.preventDefault();
+    if (!newExpense.label || !newExpense.amount) return;
+
+    setExpenses([
+      {
+        id: Date.now(),
+        ...newExpense,
+        amount: Number(newExpense.amount),
+        date: new Date().toISOString().split('T')[0]
+      },
+      ...expenses
+    ]);
+
+    setNewExpense({ label: '', amount: '', category: 'transport' });
+    setShowAddModal(false);
+  };
+
+  const deleteExpense = (id) => {
+    setExpenses(expenses.filter(exp => exp.id !== id));
+  };
 
   return (
     <div className="budget-root">
@@ -134,7 +183,9 @@ export default function TripBudget() {
           gap: 16px;
           padding: 20px 0;
           border-bottom: 1px solid ${T.border};
+          transition: background 0.2s;
         }
+        .expense-row:hover { background: #fcfcfc; }
         .icon-circle {
           width: 44px;
           height: 44px;
@@ -146,7 +197,9 @@ export default function TripBudget() {
         .expense-info { flex: 1; }
         .expense-name { font-weight: 700; font-size: 15px; margin-bottom: 2px; }
         .expense-meta { font-size: 12px; color: ${T.muted}; font-weight: 600; }
-        .expense-amount { font-weight: 800; font-size: 15px; }
+        .expense-amount { font-weight: 800; font-size: 15px; text-align: right; }
+        .delete-btn { color: ${T.muted}; cursor: pointer; transition: color 0.2s; padding: 4px; }
+        .delete-btn:hover { color: ${T.coral}; }
 
         .breakdown-card {
           background: ${T.navy};
@@ -161,6 +214,59 @@ export default function TripBudget() {
         .break-top { display: flex; justify-content: space-between; font-weight: 700; font-size: 14px; }
         .progress-bg { height: 8px; background: rgba(255,255,255,0.1); border-radius: 10px; overflow: hidden; }
         .progress-fill { height: 100%; border-radius: 10px; }
+
+        .modal-overlay {
+          position: fixed;
+          inset: 0;
+          background: rgba(43, 45, 66, 0.4);
+          backdrop-filter: blur(8px);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          z-index: 1000;
+        }
+        .modal-content {
+          background: white;
+          padding: 40px;
+          border-radius: 32px;
+          width: 100%;
+          max-width: 480px;
+          box-shadow: 0 20px 50px rgba(0,0,0,0.1);
+        }
+        .modal-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 32px;
+        }
+        .modal-title { font-family: 'Cormorant Garamond', serif; font-size: 32px; font-weight: 700; }
+        .input-group { margin-bottom: 24px; }
+        .input-label { display: block; font-size: 13px; font-weight: 700; margin-bottom: 8px; color: ${T.muted}; text-transform: uppercase; letter-spacing: 1px; }
+        .input-field {
+          width: 100%;
+          padding: 16px;
+          border: 1px solid ${T.border};
+          border-radius: 16px;
+          font-family: inherit;
+          font-size: 15px;
+          outline: none;
+          transition: border-color 0.2s;
+        }
+        .input-field:focus { border-color: ${T.coral}; }
+        .submit-btn {
+          width: 100%;
+          padding: 16px;
+          background: ${T.navy};
+          color: white;
+          border: none;
+          border-radius: 16px;
+          font-weight: 700;
+          font-size: 16px;
+          cursor: pointer;
+          margin-top: 12px;
+          transition: all 0.2s;
+        }
+        .submit-btn:hover { background: #3a3d58; transform: translateY(-2px); }
       `}} />
 
       <div className="budget-container">
@@ -173,11 +279,14 @@ export default function TripBudget() {
             <h1 style={{ color: T.navy }}>Financial Planner</h1>
             <p style={{ color: T.muted, fontWeight: 600 }}>Tracking your travel investments for Paris Getaway.</p>
           </div>
-          <button style={{ 
-            background: T.navy, color: 'white', border: 'none', 
-            padding: '14px 28px', borderRadius: '16px', fontWeight: 700,
-            cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 10
-          }}>
+          <button 
+            onClick={() => setShowAddModal(true)}
+            style={{ 
+              background: T.navy, color: 'white', border: 'none', 
+              padding: '14px 28px', borderRadius: '16px', fontWeight: 700,
+              cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 10
+            }}
+          >
             <Plus size={20} /> Add Expense
           </button>
         </div>
@@ -206,18 +315,38 @@ export default function TripBudget() {
               Recent Transactions
               <span style={{ fontSize: '13px', color: T.coral, cursor: 'pointer' }}>View All</span>
             </div>
-            {budgetSummary.map((item, i) => (
-              <div key={i} className="expense-row">
-                <div className="icon-circle" style={{ background: T.peach, color: T.coral }}>
-                  {item.icon}
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
+              <AnimatePresence mode='popLayout'>
+                {expenses.map((item) => (
+                  <motion.div 
+                    key={item.id}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: 20 }}
+                    className="expense-row"
+                  >
+                    <div className="icon-circle" style={{ background: T.peach, color: T.coral }}>
+                      {CATEGORIES[item.category]?.icon || <DollarSign size={18} />}
+                    </div>
+                    <div className="expense-info">
+                      <div className="expense-name">{item.label}</div>
+                      <div className="expense-meta">{item.date} • Card •••• 4242</div>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+                      <div className="expense-amount">-${item.amount.toLocaleString()}</div>
+                      <div className="delete-btn" onClick={() => deleteExpense(item.id)}>
+                        <Trash2 size={16} />
+                      </div>
+                    </div>
+                  </motion.div>
+                ))}
+              </AnimatePresence>
+              {expenses.length === 0 && (
+                <div style={{ textAlign: 'center', padding: '40px', color: T.muted }}>
+                  No transactions yet. Add your first expense above!
                 </div>
-                <div className="expense-info">
-                  <div className="expense-name">{item.label}</div>
-                  <div className="expense-meta">Visa ending in •••• 4242</div>
-                </div>
-                <div className="expense-amount">-${item.amount.toLocaleString()}</div>
-              </div>
-            ))}
+              )}
+            </div>
           </div>
 
           <div className="breakdown-card">
@@ -225,7 +354,7 @@ export default function TripBudget() {
               <PieChart size={24} color={T.coral} />
               <h3 style={{ fontSize: '20px', fontWeight: 700 }}>Allocation</h3>
             </div>
-            {budgetSummary.map((item, i) => (
+            {allocation.map((item, i) => (
               <div key={i} className="breakdown-item">
                 <div className="break-top">
                   <span>{item.label}</span>
@@ -248,11 +377,84 @@ export default function TripBudget() {
             }}>
               <Sparkles size={16} style={{ marginBottom: 8, color: T.coral }} />
               <br />
-              <b>AI Insight:</b> You've saved 15% on accommodation by booking early. Consider allocating this to your Dining budget.
+              <b>AI Insight:</b> {totalSpent > totalBudget ? "You've exceeded your budget. Review your luxury stay costs." : "You've saved 15% on accommodation by booking early. Consider allocating this to your Dining budget."}
             </div>
           </div>
         </div>
       </div>
+
+      {/* Add Expense Modal */}
+      <AnimatePresence>
+        {showAddModal && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="modal-overlay"
+            onClick={() => setShowAddModal(false)}
+          >
+            <motion.div 
+              initial={{ scale: 0.9, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.9, y: 20 }}
+              className="modal-content"
+              onClick={e => e.stopPropagation()}
+            >
+              <div className="modal-header">
+                <h2 className="modal-title">Add Expense</h2>
+                <X 
+                  size={24} 
+                  style={{ cursor: 'pointer', color: T.muted }} 
+                  onClick={() => setShowAddModal(false)} 
+                />
+              </div>
+
+              <form onSubmit={handleAddExpense}>
+                <div className="input-group">
+                  <label className="input-label">Description</label>
+                  <input 
+                    type="text" 
+                    className="input-field" 
+                    placeholder="e.g. Flight to Paris"
+                    value={newExpense.label}
+                    onChange={e => setNewExpense({...newExpense, label: e.target.value})}
+                    required
+                  />
+                </div>
+
+                <div className="input-group">
+                  <label className="input-label">Amount ($)</label>
+                  <input 
+                    type="number" 
+                    className="input-field" 
+                    placeholder="0.00"
+                    value={newExpense.amount}
+                    onChange={e => setNewExpense({...newExpense, amount: e.target.value})}
+                    required
+                  />
+                </div>
+
+                <div className="input-group">
+                  <label className="input-label">Category</label>
+                  <select 
+                    className="input-field"
+                    value={newExpense.category}
+                    onChange={e => setNewExpense({...newExpense, category: e.target.value})}
+                  >
+                    {Object.keys(CATEGORIES).map(catKey => (
+                      <option key={catKey} value={catKey}>{CATEGORIES[catKey].label}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <button type="submit" className="submit-btn">
+                  Record Expense
+                </button>
+              </form>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

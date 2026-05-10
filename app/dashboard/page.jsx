@@ -194,7 +194,16 @@ export default function UserDashboard() {
                 <div className="trips-grid">
                   {upcomingTrips.map((trip) => (
                     <Link key={trip.id} href={`/trips/${trip.id}`} className="trip-card">
-                      <img src={`https://source.unsplash.com/600x400/?${encodeURIComponent(trip.destination || trip.title || 'travel')}`} alt={trip.title} className="trip-img" />
+                      <img 
+                        src={
+                          trip.title?.toLowerCase().includes('paris') ? "https://images.unsplash.com/photo-1499856871958-5b9627545d1a?auto=format&fit=crop&q=80&w=600" :
+                          trip.title?.toLowerCase().includes('tokyo') ? "https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?auto=format&fit=crop&q=80&w=600" :
+                          trip.title?.toLowerCase().includes('italy') || trip.title?.toLowerCase().includes('amalfi') ? "https://images.unsplash.com/photo-1533104816931-20fa691ff6ca?auto=format&fit=crop&q=80&w=600" :
+                          "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?auto=format&fit=crop&q=80&w=600"
+                        } 
+                        alt={trip.title} 
+                        className="trip-img" 
+                      />
                       <div className="trip-info">
                         <div className="trip-meta">
                           <span className="trip-status">Upcoming</span>
@@ -212,10 +221,15 @@ export default function UserDashboard() {
             <motion.div variants={itemVariants}>
               <div className="section-header"><h2 className="section-title">Inspiration for your next journey</h2></div>
               <div className="reco-grid">
-                {['Amalfi Coast, Italy', 'Dubai, UAE', 'Yosemite, USA', 'Kyoto, Japan'].map((destination) => (
-                  <div key={destination} className="reco-card">
-                    <img src={`https://source.unsplash.com/600x400/?${encodeURIComponent(destination)}`} alt={destination} />
-                    <div className="reco-overlay"><h3 style={{ fontSize: '20px' }}>{destination}</h3></div>
+                {[
+                  { name: 'Amalfi Coast, Italy', img: 'https://images.unsplash.com/photo-1533104816931-20fa691ff6ca?auto=format&fit=crop&q=80&w=600' },
+                  { name: 'Dubai, UAE', img: 'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&q=80&w=600' },
+                  { name: 'Yosemite, USA', img: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&q=80&w=600' },
+                  { name: 'Kyoto, Japan', img: 'https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?auto=format&fit=crop&q=80&w=600' }
+                ].map((dest) => (
+                  <div key={dest.name} className="reco-card">
+                    <img src={dest.img} alt={dest.name} />
+                    <div className="reco-overlay"><h3 style={{ fontSize: '20px' }}>{dest.name}</h3></div>
                   </div>
                 ))}
               </div>

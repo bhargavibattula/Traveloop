@@ -23,7 +23,6 @@ export default function ItineraryBuilder({ params }) {
     try {
       await updateTrip(id, {
         title: String(formData.get('title') || '').trim(),
-        destination: String(formData.get('destination') || '').trim(),
         start_date: String(formData.get('start_date') || ''),
         end_date: String(formData.get('end_date') || ''),
         description: String(formData.get('description') || '').trim(),
@@ -90,11 +89,6 @@ export default function ItineraryBuilder({ params }) {
               <div className="input-group">
                 <label className="input-label">Trip Name</label>
                 <input name="title" type="text" className="input-field" defaultValue={trip.title || ''} />
-              </div>
-
-              <div className="input-group">
-                <label className="input-label">Destination</label>
-                <input name="destination" type="text" className="input-field" defaultValue={trip.destination || ''} />
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>

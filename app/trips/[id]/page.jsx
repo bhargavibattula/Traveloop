@@ -110,9 +110,10 @@ export default function ItineraryView({ params }) {
 
   async function handleAddStop(event) {
     event.preventDefault();
+    const form = event.currentTarget;
     setStopFormError(null);
 
-    const formData = new FormData(event.currentTarget);
+    const formData = new FormData(form);
     const locationName = String(formData.get('location') || '').trim();
 
     if (!locationName) {
@@ -127,7 +128,7 @@ export default function ItineraryView({ params }) {
         country: '',
         position: stops.length,
       });
-      event.currentTarget.reset();
+      form.reset();
       await refetchPage();
     } catch (mutationError) {
       setStopFormError(mutationError instanceof Error ? mutationError.message : 'Failed to add stop.');
@@ -147,9 +148,10 @@ export default function ItineraryView({ params }) {
 
   async function handleAddActivity(event, stopId) {
     event.preventDefault();
+    const form = event.currentTarget;
     setActivityFormErrors((currentErrors) => ({ ...currentErrors, [stopId]: null }));
 
-    const formData = new FormData(event.currentTarget);
+    const formData = new FormData(form);
     const title = String(formData.get('title') || '').trim();
     const notes = String(formData.get('notes') || '').trim();
 
@@ -168,7 +170,7 @@ export default function ItineraryView({ params }) {
         notes,
         position: activitiesByStop[stopId]?.length || 0,
       });
-      event.currentTarget.reset();
+      form.reset();
       await refetchPage();
     } catch (mutationError) {
       setActivityFormErrors((currentErrors) => ({

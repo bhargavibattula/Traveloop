@@ -4,7 +4,6 @@ import type { Trip } from "../types/trip";
 export type CreateTripInput = {
   user_id: string;
   title: string;
-  destination?: string;
   description?: string;
   start_date?: string;
   end_date?: string;
