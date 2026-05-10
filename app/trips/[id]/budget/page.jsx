@@ -42,7 +42,7 @@ export default function BudgetView() {
               />
             </svg>
             <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }}>
-              <div className="serif" style={{ fontSize: '64px', lineHeight: '1', color: var(--ink) }}>{healthScore}</div>
+              <div className="serif" style={{ fontSize: '64px', lineHeight: '1', color: 'var(--ink)' }}>{healthScore}</div>
               <div style={{ fontSize: '12px', color: 'var(--slate)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Health Score</div>
             </div>
           </div>
