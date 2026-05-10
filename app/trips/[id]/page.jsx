@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+<<<<<<< HEAD
 import { motion } from 'framer-motion';
 
 export default function ItineraryView({ params }) {
@@ -61,6 +62,41 @@ export default function ItineraryView({ params }) {
           --radius-lg: 24px;
           --radius-md: 16px;
         }
+=======
+import { getTripById } from '@/services/trip.service';
+
+export default async function ItineraryView({ params }) {
+  let trip = null;
+
+  try {
+    trip = await getTripById(params.id);
+  } catch (err) {
+    console.error('Failed to fetch trip:', err);
+  }
+
+  if (!trip) return <div>Trip not found</div>;
+
+  const day1Activities = [
+    { time: '09:00', title: 'Arrival at Leonardo da Vinci–Fiumicino Airport', category: 'Transport', cost: '$0', icon: 'M5 13l4 4L19 7' },
+    { time: '11:30', title: 'Check-in: Hotel de Russie', category: 'Stay', cost: '$850', icon: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6' },
+    { time: '14:30', title: 'Walking Tour: Spanish Steps & Trevi Fountain', category: 'Activity', cost: '$45', icon: 'M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z M15 11a3 3 0 11-6 0 3 3 0 016 0z' },
+    { time: '19:30', title: 'Welcome Dinner at Aroma Restaurant', category: 'Food', cost: '$180', icon: 'M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707' },
+  ];
+
+  return (
+    <div className="animate-up">
+      <header className="section-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+        <div>
+          <span className="eyebrow">Itinerary Details</span>
+          <h1 className="page-title">{trip.title}</h1>
+          <p className="page-subtitle">{trip.start_date || 'TBD'} - {trip.end_date || 'TBD'} · 4 Stops</p>
+        </div>
+        <div style={{ display: 'flex', gap: '16px' }}>
+          <Link href={`/trips/${trip.id}/edit`} className="btn btn-secondary">Edit Itinerary</Link>
+          <Link href={`/trips/${trip.id}/budget`} className="btn btn-primary">View Budget</Link>
+        </div>
+      </header>
+>>>>>>> 18941affa080c098e7c96197d5d353b9c0b2756b
 
         * {
           box-sizing: border-box;

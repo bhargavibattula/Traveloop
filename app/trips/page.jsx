@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+<<<<<<< HEAD
 import { motion } from 'framer-motion';
 
 export default function MyTrips() {
@@ -28,6 +29,20 @@ export default function MyTrips() {
     { id: 4, name: 'Bali Retreat', dates: 'Jan 15 - Jan 22, 2025', destinations: 2, status: 'Completed', img: 'https://images.unsplash.com/photo-1537996194471-e657df975ab4?auto=format&fit=crop&q=80&w=600' },
   ];
 
+=======
+import { getTrips } from '@/services/trip.service';
+
+export default async function MyTrips() {
+  let trips = [];
+  const userId = 'placeholder-user-id'; // TODO: replace with real auth userId
+
+  try {
+    trips = await getTrips(userId);
+  } catch (err) {
+    console.error('Failed to fetch trips:', err);
+  }
+
+>>>>>>> 18941affa080c098e7c96197d5d353b9c0b2756b
   return (
     <>
       <style dangerouslySetInnerHTML={{__html: `
@@ -52,6 +67,7 @@ export default function MyTrips() {
           padding: 0;
         }
 
+<<<<<<< HEAD
         body {
           font-family: 'Outfit', sans-serif;
           background-color: var(--bg-cream);
@@ -438,6 +454,25 @@ export default function MyTrips() {
 
           </motion.div>
         </main>
+=======
+      <div className="dashboard-grid">
+        {trips.map((trip) => (
+          <div key={trip.id} className="glass trip-card">
+            <div className="flex-between" style={{ marginBottom: '1rem' }}>
+              <span style={{ background: 'rgba(59, 130, 246, 0.2)', color: 'var(--primary-color)', padding: '0.25rem 0.75rem', borderRadius: '1rem', fontSize: '0.8rem' }}>Upcoming</span>
+              <span style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>{trip.start_date || 'TBD'} - {trip.end_date || 'TBD'}</span>
+            </div>
+            <h3 className="trip-title">{trip.title}</h3>
+            <p className="trip-meta">{trip.description || trip.destination || 'No description yet'}</p>
+            <div className="flex-between" style={{ marginTop: '2rem' }}>
+              <div style={{ display: 'flex', gap: '0.5rem' }}>
+                <Link href={`/trips/${trip.id}`} className="btn btn-primary" style={{ padding: '0.4rem 1rem', fontSize: '0.9rem' }}>View</Link>
+                <Link href={`/trips/${trip.id}/edit`} className="btn btn-outline" style={{ padding: '0.4rem 1rem', fontSize: '0.9rem' }}>Edit</Link>
+              </div>
+            </div>
+          </div>
+        ))}
+>>>>>>> 18941affa080c098e7c96197d5d353b9c0b2756b
       </div>
     </>
   );

@@ -1,6 +1,32 @@
+'use client';
+
+import { useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { supabase } from '@/lib/supabase';
 
 export default function Register() {
+  const router = useRouter();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+
+  async function handleSubmit(event) {
+    event.preventDefault();
+
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+    });
+
+    if (error) {
+      console.error('Signup error:', error.message);
+      return;
+    }
+
+    console.log('Signup successful:', data.user?.email);
+    router.push('/dashboard');
+  }
+
   return (
     <div style={{ 
       position: 'fixed', 
@@ -67,7 +93,7 @@ export default function Register() {
             <p style={{ color: 'var(--slate)', fontSize: '15px' }}>Begin your Traveloop experience today.</p>
           </header>
 
-          <form style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             <button type="button" className="btn btn-secondary" style={{ width: '100%', justifyContent: 'center', padding: '12px' }}>
               <svg width="20" height="20" viewBox="0 0 24 24" style={{ marginRight: '8px' }}>
                 <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
@@ -97,7 +123,7 @@ export default function Register() {
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
               <label style={{ fontSize: '13px', fontWeight: '500', color: 'var(--slate)' }}>Email Address</label>
-              <input type="email" placeholder="name@domain.com" style={{ 
+              <input type="email" placeholder="name@domain.com" value={email} onChange={(event) => setEmail(event.target.value)} style={{ 
                 padding: '11px 16px', 
                 borderRadius: '10px', 
                 border: '1.5px solid var(--border)',
@@ -108,7 +134,7 @@ export default function Register() {
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
               <label style={{ fontSize: '13px', fontWeight: '500', color: 'var(--slate)' }}>Password</label>
-              <input type="password" placeholder="••••••••" style={{ 
+              <input type="password" placeholder="••••••••" value={password} onChange={(event) => setPassword(event.target.value)} style={{ 
                 padding: '11px 16px', 
                 borderRadius: '10px', 
                 border: '1.5px solid var(--border)',
@@ -124,9 +150,9 @@ export default function Register() {
               </p>
             </div>
 
-            <Link href="/dashboard" className="btn btn-primary" style={{ width: '100%', justifyContent: 'center', padding: '14px', marginTop: '8px' }}>
+            <button type="submit" className="btn btn-primary" style={{ width: '100%', justifyContent: 'center', padding: '14px', marginTop: '8px' }}>
               Create Account
-            </Link>
+            </button>
 
             <p style={{ textAlign: 'center', fontSize: '14px', color: 'var(--slate)', marginTop: '8px' }}>
               Already have an account? <Link href="/login" style={{ color: 'var(--ocean)', fontWeight: '500' }}>Sign in</Link>

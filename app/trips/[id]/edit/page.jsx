@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+<<<<<<< HEAD
 import { motion } from 'framer-motion';
 
 export default function ItineraryBuilder({ params }) {
@@ -35,6 +36,40 @@ export default function ItineraryBuilder({ params }) {
           --radius-lg: 24px;
           --radius-md: 16px;
         }
+=======
+import { getTripById, updateTrip } from '@/services/trip.service';
+
+export default async function ItineraryBuilder({ params }) {
+  let trip = null;
+
+  try {
+    trip = await getTripById(params.id);
+  } catch (err) {
+    console.error('Failed to fetch trip:', err);
+  }
+
+  if (!trip) return <div>Trip not found</div>;
+
+  async function saveTrip(formData) {
+    'use server';
+
+    await updateTrip(params.id, {
+      title: formData.get('title')?.toString() || '',
+    });
+  }
+
+  return (
+    <form action={saveTrip}>
+    <input type="hidden" name="title" value={trip.title || ''} />
+    <div className="container animate-fade-in">
+      <div className="page-header flex-between">
+        <div>
+          <Link href={`/trips/${trip.id}`} style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '1rem', display: 'inline-block' }}>← Back to Itinerary</Link>
+          <h1 className="page-title">Builder: {trip.title}</h1>
+        </div>
+        <button type="submit" className="btn btn-primary">Save Changes</button>
+      </div>
+>>>>>>> 18941affa080c098e7c96197d5d353b9c0b2756b
 
         * {
           box-sizing: border-box;
@@ -538,6 +573,11 @@ export default function ItineraryBuilder({ params }) {
           </motion.div>
         </main>
       </div>
+<<<<<<< HEAD
     </>
+=======
+    </div>
+    </form>
+>>>>>>> 18941affa080c098e7c96197d5d353b9c0b2756b
   );
 }
