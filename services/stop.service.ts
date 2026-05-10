@@ -1,6 +1,12 @@
 import { supabase } from "../lib/supabase";
 import type { TripStop } from "../types/trip";
 
+export type Stop = TripStop & {
+  city?: string;
+  country?: string;
+  position?: number;
+};
+
 export type CreateStopInput = {
   trip_id: string;
   city: string;
@@ -10,7 +16,29 @@ export type CreateStopInput = {
   position: number;
 };
 
-export async function addStop(inputData: CreateStopInput): Promise<TripStop> {
+export async function fetchStopsByTrip(tripId: string): Promise<Stop[]> {
+  const { data, error } = await supabase
+    .from("trip_stops")
+    .select("*")
+    .eq("trip_id", tripId)
+    .order("position", { ascending: true });
+
+  if (error) {
+    throw new Error(`[fetchStopsByTrip] ${error.message}`);
+  }
+
+  return data || [];
+}
+
+export async function addStop(
+  tripIdOrInputData: string | CreateStopInput,
+  stop?: Partial<Stop>,
+): Promise<Stop> {
+  const inputData =
+    typeof tripIdOrInputData === "string"
+      ? { ...stop, trip_id: tripIdOrInputData }
+      : tripIdOrInputData;
+
   const { data, error } = await supabase
     .from("trip_stops")
     .insert(inputData)
@@ -37,23 +65,48 @@ export async function deleteStop(id: string): Promise<void> {
 }
 
 export async function reorderStops(
-  stopId: string,
-  newPosition: number,
-): Promise<TripStop> {
-  const { data, error } = await supabase
-    .from("trip_stops")
-    .update({ position: newPosition })
-    .eq("id", stopId)
-    .select()
-    .single();
+  stopsOrStopId: { id: string; position: number }[] | string,
+  newPosition?: number,
+): Promise<Stop[] | Stop> {
+  if (typeof stopsOrStopId === "string") {
+    const { data, error } = await supabase
+      .from("trip_stops")
+      .update({ position: newPosition })
+      .eq("id", stopsOrStopId)
+      .select()
+      .single();
 
-  if (error) {
-    throw new Error(`[reorderStops] ${error.message}`);
+    if (error) {
+      throw new Error(`[reorderStops] ${error.message}`);
+    }
+
+    if (!data) {
+      throw new Error("[reorderStops] No data returned");
+    }
+
+    return data;
   }
 
-  if (!data) {
-    throw new Error("[reorderStops] No data returned");
-  }
+  const updatedStops = await Promise.all(
+    stopsOrStopId.map(async (stop) => {
+      const { data, error } = await supabase
+        .from("trip_stops")
+        .update({ position: stop.position })
+        .eq("id", stop.id)
+        .select()
+        .single();
 
-  return data;
+      if (error) {
+        throw new Error(`[reorderStops] ${error.message}`);
+      }
+
+      if (!data) {
+        throw new Error("[reorderStops] No data returned");
+      }
+
+      return data;
+    }),
+  );
+
+  return updatedStops;
 }

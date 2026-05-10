@@ -1,6 +1,16 @@
 import Link from 'next/link';
+import { getTrips } from '@/services/trip.service';
 
-export default function MyTrips() {
+export default async function MyTrips() {
+  let trips = [];
+  const userId = 'placeholder-user-id'; // TODO: replace with real auth userId
+
+  try {
+    trips = await getTrips(userId);
+  } catch (err) {
+    console.error('Failed to fetch trips:', err);
+  }
+
   return (
     <div className="container animate-fade-in">
       <div className="page-header flex-between">
@@ -20,32 +30,22 @@ export default function MyTrips() {
       </div>
 
       <div className="dashboard-grid">
-        <div className="glass trip-card">
-          <div className="flex-between" style={{ marginBottom: '1rem' }}>
-            <span style={{ background: 'rgba(59, 130, 246, 0.2)', color: 'var(--primary-color)', padding: '0.25rem 0.75rem', borderRadius: '1rem', fontSize: '0.8rem' }}>Upcoming</span>
-            <span style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Oct 12 - Oct 25</span>
-          </div>
-          <h3 className="trip-title">Euro Trip 2026</h3>
-          <p className="trip-meta">Paris • Amsterdam • Berlin</p>
-          <div className="flex-between" style={{ marginTop: '2rem' }}>
-            <div style={{ display: 'flex', gap: '0.5rem' }}>
-              <Link href="/trips/1" className="btn btn-primary" style={{ padding: '0.4rem 1rem', fontSize: '0.9rem' }}>View</Link>
-              <Link href="/trips/1/edit" className="btn btn-outline" style={{ padding: '0.4rem 1rem', fontSize: '0.9rem' }}>Edit</Link>
+        {trips.map((trip) => (
+          <div key={trip.id} className="glass trip-card">
+            <div className="flex-between" style={{ marginBottom: '1rem' }}>
+              <span style={{ background: 'rgba(59, 130, 246, 0.2)', color: 'var(--primary-color)', padding: '0.25rem 0.75rem', borderRadius: '1rem', fontSize: '0.8rem' }}>Upcoming</span>
+              <span style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>{trip.start_date || 'TBD'} - {trip.end_date || 'TBD'}</span>
+            </div>
+            <h3 className="trip-title">{trip.title}</h3>
+            <p className="trip-meta">{trip.description || trip.destination || 'No description yet'}</p>
+            <div className="flex-between" style={{ marginTop: '2rem' }}>
+              <div style={{ display: 'flex', gap: '0.5rem' }}>
+                <Link href={`/trips/${trip.id}`} className="btn btn-primary" style={{ padding: '0.4rem 1rem', fontSize: '0.9rem' }}>View</Link>
+                <Link href={`/trips/${trip.id}/edit`} className="btn btn-outline" style={{ padding: '0.4rem 1rem', fontSize: '0.9rem' }}>Edit</Link>
+              </div>
             </div>
           </div>
-        </div>
-
-        <div className="glass trip-card" style={{ opacity: 0.7 }}>
-          <div className="flex-between" style={{ marginBottom: '1rem' }}>
-            <span style={{ background: 'rgba(148, 163, 184, 0.2)', color: 'var(--text-muted)', padding: '0.25rem 0.75rem', borderRadius: '1rem', fontSize: '0.8rem' }}>Past</span>
-            <span style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Jan 5 - Jan 15</span>
-          </div>
-          <h3 className="trip-title">Winter in Hokkaido</h3>
-          <p className="trip-meta">Sapporo • Niseko</p>
-          <div className="flex-between" style={{ marginTop: '2rem' }}>
-            <Link href="/trips/2" className="btn btn-outline" style={{ padding: '0.4rem 1rem', fontSize: '0.9rem', width: '100%' }}>View Details</Link>
-          </div>
-        </div>
+        ))}
       </div>
     </div>
   );
