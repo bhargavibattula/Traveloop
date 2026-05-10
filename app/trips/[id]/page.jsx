@@ -1,6 +1,17 @@
 import Link from 'next/link';
+import { getTripById } from '@/services/trip.service';
 
-export default function ItineraryView({ params }) {
+export default async function ItineraryView({ params }) {
+  let trip = null;
+
+  try {
+    trip = await getTripById(params.id);
+  } catch (err) {
+    console.error('Failed to fetch trip:', err);
+  }
+
+  if (!trip) return <div>Trip not found</div>;
+
   const day1Activities = [
     { time: '09:00', title: 'Arrival at Leonardo da Vinci–Fiumicino Airport', category: 'Transport', cost: '$0', icon: 'M5 13l4 4L19 7' },
     { time: '11:30', title: 'Check-in: Hotel de Russie', category: 'Stay', cost: '$850', icon: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6' },
@@ -13,12 +24,12 @@ export default function ItineraryView({ params }) {
       <header className="section-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
         <div>
           <span className="eyebrow">Itinerary Details</span>
-          <h1 className="page-title">Summer in Santorini</h1>
-          <p className="page-subtitle">Aug 12 - Aug 20 · 8 Days · 4 Stops</p>
+          <h1 className="page-title">{trip.title}</h1>
+          <p className="page-subtitle">{trip.start_date || 'TBD'} - {trip.end_date || 'TBD'} · 4 Stops</p>
         </div>
         <div style={{ display: 'flex', gap: '16px' }}>
-          <Link href="/trips/1/edit" className="btn btn-secondary">Edit Itinerary</Link>
-          <Link href="/trips/1/budget" className="btn btn-primary">View Budget</Link>
+          <Link href={`/trips/${trip.id}/edit`} className="btn btn-secondary">Edit Itinerary</Link>
+          <Link href={`/trips/${trip.id}/budget`} className="btn btn-primary">View Budget</Link>
         </div>
       </header>
 

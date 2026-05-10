@@ -1,14 +1,35 @@
 import Link from 'next/link';
+import { getTripById, updateTrip } from '@/services/trip.service';
 
-export default function ItineraryBuilder({ params }) {
+export default async function ItineraryBuilder({ params }) {
+  let trip = null;
+
+  try {
+    trip = await getTripById(params.id);
+  } catch (err) {
+    console.error('Failed to fetch trip:', err);
+  }
+
+  if (!trip) return <div>Trip not found</div>;
+
+  async function saveTrip(formData) {
+    'use server';
+
+    await updateTrip(params.id, {
+      title: formData.get('title')?.toString() || '',
+    });
+  }
+
   return (
+    <form action={saveTrip}>
+    <input type="hidden" name="title" value={trip.title || ''} />
     <div className="container animate-fade-in">
       <div className="page-header flex-between">
         <div>
-          <Link href="/trips/1" style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '1rem', display: 'inline-block' }}>← Back to Itinerary</Link>
-          <h1 className="page-title">Builder: Euro Trip 2026</h1>
+          <Link href={`/trips/${trip.id}`} style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '1rem', display: 'inline-block' }}>← Back to Itinerary</Link>
+          <h1 className="page-title">Builder: {trip.title}</h1>
         </div>
-        <button className="btn btn-primary">Save Changes</button>
+        <button type="submit" className="btn btn-primary">Save Changes</button>
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 350px', gap: '2rem' }}>
@@ -62,5 +83,6 @@ export default function ItineraryBuilder({ params }) {
         </div>
       </div>
     </div>
+    </form>
   );
 }
