@@ -21,7 +21,29 @@ export type CreateActivityInput = {
   position: number;
 };
 
-export async function addActivity(inputData: CreateActivityInput): Promise<Activity> {
+export async function fetchActivitiesByStop(stopId: string): Promise<Activity[]> {
+  const { data, error } = await supabase
+    .from("trip_activities")
+    .select("*")
+    .eq("stop_id", stopId)
+    .order("position", { ascending: true });
+
+  if (error) {
+    throw new Error(`[fetchActivitiesByStop] ${error.message}`);
+  }
+
+  return data || [];
+}
+
+export async function addActivity(
+  stopIdOrInputData: string | CreateActivityInput,
+  activity?: Partial<Activity>,
+): Promise<Activity> {
+  const inputData =
+    typeof stopIdOrInputData === "string"
+      ? { ...activity, stop_id: stopIdOrInputData }
+      : stopIdOrInputData;
+
   const { data, error } = await supabase
     .from("trip_activities")
     .insert(inputData)
@@ -41,7 +63,7 @@ export async function addActivity(inputData: CreateActivityInput): Promise<Activ
 
 export async function updateActivity(
   id: string,
-  updateData: Partial<CreateActivityInput>,
+  updateData: Partial<Activity>,
 ): Promise<Activity> {
   const { data, error } = await supabase
     .from("trip_activities")
