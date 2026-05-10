@@ -1,6 +1,6 @@
 import Link from 'next/link';
 
-export default function BudgetView() {
+export default function BudgetView({ params }) {
   const healthScore = 82; // Example score
   const healthColor = healthScore >= 80 ? 'var(--sage)' : healthScore >= 60 ? 'var(--gold)' : 'var(--coral)';
 
@@ -14,7 +14,7 @@ export default function BudgetView() {
   return (
     <div className="animate-up">
       <header className="section-header">
-        <Link href="/trips/1" style={{ color: 'var(--slate)', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px', textDecoration: 'none' }}>
+        <Link href={`/trips/${params.id}`} style={{ color: 'var(--slate)', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px', textDecoration: 'none' }}>
           <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
             <path d="M15 19l-7-7 7-7" strokeLinecap="round" strokeLinejoin="round" />
           </svg>

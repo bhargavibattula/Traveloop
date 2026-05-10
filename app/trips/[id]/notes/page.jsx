@@ -5,11 +5,11 @@ export default function TripNotes({ params }) {
     <div className="container animate-fade-in">
       <div className="page-header flex-between">
         <div>
-          <Link href="/trips/1" style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '1rem', display: 'inline-block' }}>← Back to Itinerary</Link>
+          <Link href={`/trips/${params.id}`} style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '1rem', display: 'inline-block' }}>← Back to Itinerary</Link>
           <h1 className="page-title">Trip Notes & Journal</h1>
           <p style={{ color: 'var(--text-muted)' }}>Euro Trip (Oct 12 - Oct 25)</p>
         </div>
-        <button className="btn btn-primary">+ New Note</button>
+        <button type="button" className="btn btn-primary">+ New Note</button>
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: '2rem', marginTop: '2rem' }}>
@@ -27,8 +27,8 @@ export default function TripNotes({ params }) {
               - Hotel bookings
             </p>
             <div style={{ marginTop: '1.5rem', display: 'flex', gap: '1rem' }}>
-              <button className="btn btn-outline" style={{ padding: '0.4rem 1rem', fontSize: '0.8rem' }}>Edit</button>
-              <button className="btn btn-outline" style={{ padding: '0.4rem 1rem', fontSize: '0.8rem', color: 'var(--danger)', borderColor: 'var(--danger)' }}>Delete</button>
+              <button type="button" className="btn btn-outline" style={{ padding: '0.4rem 1rem', fontSize: '0.8rem' }}>Edit</button>
+              <button type="button" className="btn btn-outline" style={{ padding: '0.4rem 1rem', fontSize: '0.8rem', color: 'var(--danger)', borderColor: 'var(--danger)' }}>Delete</button>
             </div>
           </div>
 

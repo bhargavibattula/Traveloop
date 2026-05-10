@@ -2,23 +2,56 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { getTrips } from '@/services/trip.service';
+import { deleteTrip, getTrips } from '@/services/trip.service';
+import { supabase } from '@/lib/supabase';
+
+const DEMO_USER_ID = '11111111-1111-1111-1111-111111111111';
 
 export default function MyTrips() {
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState('trips');
   const [filter, setFilter] = useState('All Trips');
   const [trips, setTrips] = useState([]);
 
   useEffect(() => {
-    const userId = 'placeholder-user-id'; // TODO: replace with real auth userId
-
-    getTrips(userId)
-      .then(setTrips)
-      .catch((err) => {
+    async function loadTrips() {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        const userId = user?.id || DEMO_USER_ID;
+        const userTrips = await getTrips(userId);
+        setTrips(userTrips);
+      } catch (err) {
         console.error('Failed to fetch trips:', err);
-      });
+      }
+    }
+
+    loadTrips();
   }, []);
+
+  async function handleDeleteTrip(id) {
+    try {
+      await deleteTrip(id);
+      setTrips((currentTrips) => currentTrips.filter((trip) => trip.id !== id));
+      router.push('/trips');
+    } catch (error) {
+      console.error('Failed to delete trip:', error);
+    }
+  }
+
+  async function handleLogout(event) {
+    event.preventDefault();
+
+    const { error } = await supabase.auth.signOut();
+
+    if (error) {
+      console.error('Logout error:', error.message);
+      return;
+    }
+
+    router.push('/login');
+  }
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -364,7 +397,7 @@ export default function MyTrips() {
               <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
               Settings
             </Link>
-            <Link href="/" className="nav-item" style={{ color: '#ff6b6b' }}>
+            <Link href="/login" className="nav-item" style={{ color: '#ff6b6b' }} onClick={handleLogout}>
               <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
               Log Out
             </Link>
@@ -431,7 +464,7 @@ export default function MyTrips() {
                         <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
                         Edit
                       </Link>
-                      <button className="action-btn delete">
+                      <button className="action-btn delete" onClick={() => handleDeleteTrip(trip.id)}>
                         <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
                         Delete
                       </button>

@@ -5,6 +5,9 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { createTrip } from '@/services/trip.service';
+import { supabase } from '@/lib/supabase';
+
+const DEMO_USER_ID = '11111111-1111-1111-1111-111111111111';
 
 export default function CreateTrip() {
   const router = useRouter();
@@ -26,8 +29,11 @@ export default function CreateTrip() {
     const formData = new FormData(event.currentTarget);
 
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      const userId = user?.id || DEMO_USER_ID;
+
       const trip = await createTrip({
-        user_id: '11111111-1111-1111-1111-111111111111',
+        user_id: userId,
         title: String(formData.get('title') || ''),
         description: String(formData.get('description') || ''),
         start_date: String(formData.get('start_date') || ''),
