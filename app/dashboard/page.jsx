@@ -4,6 +4,10 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { useTrips } from '@/hooks/useTrips';
+import { 
+  Sparkles, Wand2, CheckCircle2, DollarSign, 
+  Compass, Luggage, Search, LayoutDashboard, Settings, LogOut 
+} from 'lucide-react';
 
 // TODO: Replace with real auth session userId before production
 const DEMO_USER_ID = process.env.NEXT_PUBLIC_DEMO_USER_ID || "demo-user";
@@ -46,13 +50,13 @@ export default function UserDashboard() {
         .logo { font-family: 'Cormorant Garamond', serif; font-size: 28px; font-weight: 700; color: var(--text-dark); text-decoration: none; display: flex; align-items: center; gap: 8px; margin-bottom: 48px; }
         .nav-item { display: flex; align-items: center; gap: 16px; padding: 14px 20px; border-radius: 12px; color: var(--text-muted); text-decoration: none; font-weight: 600; transition: all 0.2s; cursor: pointer; margin-bottom: 8px; }
         .nav-item:hover { background: var(--bg-peach); color: var(--primary); }
-        .nav-item.active { background: var(--primary); color: white; box-shadow: 0 10px 20px rgba(255,107,107,0.2); }
+        .nav-item.active { background: var(--primary); color: white; box-shadow: 0 10px 20px rgba(255, 107, 107, 0.2); }
         .sidebar-bottom { margin-top: auto; border-top: 1px solid var(--border); padding-top: 24px; }
         .main-content { flex: 1; margin-left: 260px; padding: 40px 60px; background: linear-gradient(135deg, var(--bg-cream) 0%, var(--bg-peach) 100%); min-height: 100vh; }
         .topbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 48px; }
         .welcome-text h1 { font-family: 'Cormorant Garamond', serif; font-size: 40px; font-weight: 700; margin-bottom: 4px; }
         .welcome-text p { color: var(--text-muted); font-size: 16px; }
-        .btn-new-trip, .btn-primary { background: var(--primary); color: white; padding: 12px 24px; border-radius: 100px; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 15px rgba(255,107,107,0.3); transition: transform 0.2s; border: none; cursor: pointer; }
+        .btn-new-trip, .btn-primary { background: var(--primary); color: white; padding: 12px 24px; border-radius: 100px; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3); transition: transform 0.2s; border: none; cursor: pointer; }
         .btn-new-trip:hover, .btn-primary:hover { transform: translateY(-2px); background: var(--primary-hover); }
         .btn-secondary { background: white; color: var(--text-dark); padding: 10px 18px; border-radius: 100px; font-weight: 600; text-decoration: none; display: inline-flex; border: 1px solid var(--border); cursor: pointer; }
         .budget-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; margin-bottom: 48px; }
@@ -80,14 +84,35 @@ export default function UserDashboard() {
         <aside className="sidebar">
           <Link href="/" className="logo">Traveloop</Link>
           <nav>
-            <div className={`nav-item ${activeTab === 'dashboard' ? 'active' : ''}`} onClick={() => setActiveTab('dashboard')}>Dashboard</div>
-            <Link href="/trips" className="nav-item">My Trips</Link>
-            <Link href="/search" className="nav-item">Explore</Link>
-            <Link href="/trips/1/budget" className="nav-item">Budgets</Link>
+            <div className={`nav-item ${activeTab === 'dashboard' ? 'active' : ''}`} onClick={() => setActiveTab('dashboard')}>
+              <LayoutDashboard size={20} /> Dashboard
+            </div>
+            <Link href="/trips" className="nav-item">
+              <Luggage size={20} /> My Trips
+            </Link>
+            <Link href="/search" className="nav-item">
+              <Search size={20} /> Explore
+            </Link>
+            <Link href="/dashboard/ai-features" className={`nav-item ${activeTab === 'ai-features' ? 'active' : ''}`}>
+              <Sparkles size={20} /> AI Features
+            </Link>
+            <Link href="/dashboard/ai-planner" className={`nav-item ${activeTab === 'ai-planner' ? 'active' : ''}`}>
+              <Wand2 size={20} /> AI Planner
+            </Link>
+            <Link href="/dashboard/checklist" className={`nav-item ${activeTab === 'checklist' ? 'active' : ''}`}>
+              <CheckCircle2 size={20} /> Checklist
+            </Link>
+            <Link href="/dashboard/budget" className={`nav-item ${activeTab === 'budget' ? 'active' : ''}`}>
+              <DollarSign size={20} /> Budgets
+            </Link>
           </nav>
           <div className="sidebar-bottom">
-            <Link href="/profile" className="nav-item">Settings</Link>
-            <Link href="/" className="nav-item" style={{ color: '#ff6b6b' }}>Log Out</Link>
+            <Link href="/profile" className="nav-item">
+              <Settings size={20} /> Settings
+            </Link>
+            <Link href="/" className="nav-item" style={{ color: '#ff6b6b' }}>
+              <LogOut size={20} /> Log Out
+            </Link>
           </div>
         </aside>
 
