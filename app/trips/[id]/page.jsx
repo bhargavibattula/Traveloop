@@ -1,472 +1,329 @@
 "use client";
 
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { getTripById } from '@/services/trip.service';
+import { useActivityMutations } from '@/hooks/useActivities';
+import { useStopMutations } from '@/hooks/useStops';
+import { useTripById } from '@/hooks/useTrips';
+import { fetchActivitiesByStop } from '@/services/activity.service';
+import { fetchStopsByTrip } from '@/services/stop.service';
+
+function formatDateRange(startDate, endDate) {
+  if (!startDate && !endDate) {
+    return 'Dates not set';
+  }
+
+  if (startDate && endDate) {
+    return `${startDate} - ${endDate}`;
+  }
+
+  return startDate || endDate;
+}
+
+function getStopTitle(stop) {
+  const cityCountry = [stop.city, stop.country].filter(Boolean).join(', ');
+  return stop.title || stop.location || cityCountry || 'Untitled stop';
+}
+
+function getStopOrder(stop) {
+  return stop.stop_order ?? stop.position ?? 0;
+}
+
+function getActivityDescription(activity) {
+  return activity.description || activity.notes || activity.duration || 'No details added yet.';
+}
 
 export default function ItineraryView({ params }) {
-  const [activeTab, setActiveTab] = useState('trips');
-  const [viewMode, setViewMode] = useState('list'); // 'list' or 'calendar'
-  const [trip, setTrip] = useState(null);
-  const [notFound, setNotFound] = useState(false);
+  const { id } = params;
+  const { trip, loading, error, refetch } = useTripById(id);
+  const { addStop, deleteStop, loading: stopLoading, error: stopError } = useStopMutations();
+  const { addActivity, removeActivity, loading: activityLoading, error: activityError } = useActivityMutations();
+  const [viewMode, setViewMode] = useState('list');
+  const [stops, setStops] = useState([]);
+  const [activitiesByStop, setActivitiesByStop] = useState({});
+  const [relatedLoading, setRelatedLoading] = useState(false);
+  const [relatedError, setRelatedError] = useState(null);
+  const [stopFormError, setStopFormError] = useState(null);
+  const [activityFormErrors, setActivityFormErrors] = useState({});
+  const [refreshKey, setRefreshKey] = useState(0);
+
+  const refetchPage = useCallback(async () => {
+    refetch();
+    setRefreshKey((currentKey) => currentKey + 1);
+  }, [refetch]);
 
   useEffect(() => {
-    getTripById(params.id)
-      .then(setTrip)
-      .catch((err) => {
-        console.error('Failed to fetch trip:', err);
-        setNotFound(true);
-      });
-  }, [params.id]);
+    let mounted = true;
 
-  if (notFound) return <div>Trip not found</div>;
+    async function fetchRelatedData() {
+      if (!trip) {
+        setStops([]);
+        setActivitiesByStop({});
+        return;
+      }
 
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    show: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1
+      setRelatedLoading(true);
+      setRelatedError(null);
+
+      try {
+        const fetchedStops = await fetchStopsByTrip(id);
+        const activityGroups = {};
+        const activityErrors = [];
+
+        await Promise.all(
+          fetchedStops.map(async (stop) => {
+            try {
+              activityGroups[stop.id] = await fetchActivitiesByStop(stop.id);
+            } catch (activityFetchError) {
+              activityGroups[stop.id] = [];
+              activityErrors.push(activityFetchError);
+            }
+          }),
+        );
+
+        if (mounted) {
+          setStops(fetchedStops);
+          setActivitiesByStop(activityGroups);
+
+          if (activityErrors.length > 0) {
+            setRelatedError('Some activities failed to load. Stops are still shown.');
+          }
+        }
+      } catch (fetchError) {
+        if (mounted) {
+          setRelatedError(fetchError instanceof Error ? fetchError.message : 'Failed to load itinerary details.');
+        }
+      } finally {
+        if (mounted) {
+          setRelatedLoading(false);
+        }
       }
     }
-  };
+
+    void fetchRelatedData();
+
+    return () => {
+      mounted = false;
+    };
+  }, [id, refreshKey, trip?.id]);
+
+  async function handleAddStop(event) {
+    event.preventDefault();
+    setStopFormError(null);
+
+    const formData = new FormData(event.currentTarget);
+    const locationName = String(formData.get('location') || '').trim();
+
+    if (!locationName) {
+      setStopFormError('Location name is required.');
+      return;
+    }
+
+    try {
+      await addStop({
+        trip_id: id,
+        city: locationName,
+        country: '',
+        position: stops.length,
+      });
+      event.currentTarget.reset();
+      await refetchPage();
+    } catch (mutationError) {
+      setStopFormError(mutationError instanceof Error ? mutationError.message : 'Failed to add stop.');
+    }
+  }
+
+  async function handleDeleteStop(stopId) {
+    setStopFormError(null);
+
+    try {
+      await deleteStop(stopId);
+      await refetchPage();
+    } catch (mutationError) {
+      setStopFormError(mutationError instanceof Error ? mutationError.message : 'Failed to delete stop.');
+    }
+  }
+
+  async function handleAddActivity(event, stopId) {
+    event.preventDefault();
+    setActivityFormErrors((currentErrors) => ({ ...currentErrors, [stopId]: null }));
+
+    const formData = new FormData(event.currentTarget);
+    const title = String(formData.get('title') || '').trim();
+    const notes = String(formData.get('notes') || '').trim();
+
+    if (!title) {
+      setActivityFormErrors((currentErrors) => ({ ...currentErrors, [stopId]: 'Activity name is required.' }));
+      return;
+    }
+
+    try {
+      await addActivity({
+        stop_id: stopId,
+        title,
+        category: 'Activity',
+        cost: 0,
+        duration: '',
+        notes,
+        position: activitiesByStop[stopId]?.length || 0,
+      });
+      event.currentTarget.reset();
+      await refetchPage();
+    } catch (mutationError) {
+      setActivityFormErrors((currentErrors) => ({
+        ...currentErrors,
+        [stopId]: mutationError instanceof Error ? mutationError.message : 'Failed to add activity.',
+      }));
+    }
+  }
+
+  async function handleRemoveActivity(activityId) {
+    try {
+      await removeActivity(activityId);
+      await refetchPage();
+    } catch (mutationError) {
+      setRelatedError(mutationError instanceof Error ? mutationError.message : 'Failed to remove activity.');
+    }
+  }
 
   const itemVariants = {
     hidden: { opacity: 0, y: 20 },
-    show: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 300, damping: 24 } }
+    show: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 300, damping: 24 } },
   };
 
-  const itinerary = [
-    {
-      day: 1,
-      date: 'Oct 12',
-      city: 'Paris',
-      activities: [
-        { time: '14:00', title: 'Check-in: Le Meurice', cost: '$850', type: 'Stay' },
-        { time: '16:30', title: 'Eiffel Tower Sunset Tour', cost: '$45', type: 'Activity' },
-        { time: '20:00', title: 'Dinner at Le Jules Verne', cost: '$250', type: 'Food' }
-      ]
-    },
-    {
-      day: 2,
-      date: 'Oct 13',
-      city: 'Paris',
-      activities: [
-        { time: '10:00', title: 'Louvre Museum Guided Tour', cost: '$65', type: 'Activity' },
-        { time: '13:00', title: 'Lunch at Tuileries Garden', cost: '$40', type: 'Food' },
-        { time: '15:30', title: 'Seine River Cruise', cost: '$30', type: 'Activity' }
-      ]
-    }
-  ];
+  if (loading) {
+    return <div className="container animate-fade-in" style={{ textAlign: 'center', paddingTop: '4rem' }}>Loading trip...</div>;
+  }
+
+  if (error) {
+    return (
+      <div className="container animate-fade-in" style={{ textAlign: 'center', paddingTop: '4rem' }}>
+        <p style={{ marginBottom: '1rem' }}>Failed to load trip. Please refresh.</p>
+        <button type="button" className="btn btn-outline" onClick={() => refetch()}>Retry</button>
+      </div>
+    );
+  }
+
+  if (!trip) {
+    return (
+      <div className="container animate-fade-in" style={{ textAlign: 'center', paddingTop: '4rem' }}>
+        <p style={{ color: 'var(--text-muted)', marginBottom: '1rem' }}>Trip not found.</p>
+        <Link href="/trips" className="btn btn-outline">Back to Trips</Link>
+      </div>
+    );
+  }
 
   return (
     <>
       <style dangerouslySetInnerHTML={{__html: `
-        :root {
-          --bg-cream: #fffcf9;
-          --bg-peach: #fff0e6;
-          --text-dark: #2b2d42;
-          --text-muted: #8d99ae;
-          --primary: #ff6b6b;
-          --primary-hover: #fa5252;
-          --secondary: #a9a6ff;
-          --border: #f1f3f5;
-          --radius-lg: 24px;
-          --radius-md: 16px;
-        }
-
-        * {
-          box-sizing: border-box;
-          margin: 0;
-          padding: 0;
-        }
-
-        body {
-          font-family: 'Outfit', sans-serif;
-          background-color: var(--bg-cream);
-          color: var(--text-dark);
-        }
-
-        .dash-layout {
-          display: flex;
-          min-height: 100vh;
-        }
-
-        /* Sidebar */
-        .sidebar {
-          width: 260px;
-          background: white;
-          border-right: 1px solid var(--border);
-          display: flex;
-          flex-direction: column;
-          padding: 32px 24px;
-          position: fixed;
-          top: 0;
-          bottom: 0;
-          left: 0;
-          z-index: 100;
-        }
-
-        .logo {
-          font-family: 'Cormorant Garamond', serif;
-          font-size: 28px;
-          font-weight: 700;
-          color: var(--text-dark);
-          text-decoration: none;
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          margin-bottom: 48px;
-        }
-
-        .nav-item {
-          display: flex;
-          align-items: center;
-          gap: 16px;
-          padding: 14px 20px;
-          border-radius: 12px;
-          color: var(--text-muted);
-          text-decoration: none;
-          font-weight: 600;
-          transition: all 0.2s;
-          cursor: pointer;
-          margin-bottom: 8px;
-        }
-
-        .nav-item:hover {
-          background: var(--bg-peach);
-          color: var(--primary);
-        }
-
-        .nav-item.active {
-          background: var(--primary);
-          color: white;
-          box-shadow: 0 10px 20px rgba(255, 107, 107, 0.2);
-        }
-
-        /* Main Content */
-        .main-content {
-          flex: 1;
-          margin-left: 260px;
-          padding: 40px 60px;
-          background: linear-gradient(135deg, var(--bg-cream) 0%, var(--bg-peach) 100%);
-          min-height: 100vh;
-        }
-
-        .topbar {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-bottom: 40px;
-        }
-
-        .breadcrumb {
-          display: inline-flex;
-          align-items: center;
-          gap: 8px;
-          color: var(--text-muted);
-          text-decoration: none;
-          font-weight: 600;
-          font-size: 14px;
-          margin-bottom: 8px;
-        }
-
-        .page-title {
-          font-family: 'Cormorant Garamond', serif;
-          font-size: 36px;
-          font-weight: 700;
-        }
-
-        .view-controls {
-          display: flex;
-          background: white;
-          padding: 4px;
-          border-radius: 100px;
-          border: 1px solid var(--border);
-        }
-
-        .view-btn {
-          padding: 8px 16px;
-          border-radius: 100px;
-          border: none;
-          font-family: inherit;
-          font-weight: 600;
-          font-size: 13px;
-          cursor: pointer;
-          transition: all 0.2s;
-          background: transparent;
-          color: var(--text-muted);
-        }
-
-        .view-btn.active {
-          background: var(--bg-peach);
-          color: var(--primary);
-        }
-
-        .itinerary-grid {
-          display: grid;
-          grid-template-columns: 240px 1fr;
-          gap: 40px;
-        }
-
-        /* Day Sidebar */
-        .day-nav {
-          position: sticky;
-          top: 40px;
-          height: fit-content;
-          display: flex;
-          flex-direction: column;
-          gap: 12px;
-        }
-
-        .day-nav-item {
-          padding: 16px 20px;
-          background: white;
-          border-radius: var(--radius-md);
-          box-shadow: 0 4px 12px rgba(0,0,0,0.02);
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          cursor: pointer;
-          transition: all 0.2s;
-          border: 1px solid transparent;
-        }
-
-        .day-nav-item:hover {
-          border-color: var(--primary);
-        }
-
-        .day-nav-item.active {
-          background: var(--primary);
-          color: white;
-        }
-
-        .day-label {
-          font-weight: 700;
-          font-size: 16px;
-        }
-
-        .day-date {
-          font-size: 12px;
-          opacity: 0.8;
-        }
-
-        /* Content Feed */
-        .itinerary-feed {
-          display: flex;
-          flex-direction: column;
-          gap: 40px;
-        }
-
-        .day-section {
-          background: white;
-          border-radius: var(--radius-lg);
-          padding: 40px;
-          box-shadow: 0 10px 30px rgba(0,0,0,0.03);
-        }
-
-        .day-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-bottom: 32px;
-          padding-bottom: 20px;
-          border-bottom: 1px solid var(--border);
-        }
-
-        .day-title {
-          font-family: 'Cormorant Garamond', serif;
-          font-size: 32px;
-          font-weight: 700;
-        }
-
-        .activity-block {
-          display: flex;
-          gap: 24px;
-          position: relative;
-          padding-bottom: 32px;
-        }
-
-        .activity-block:last-child {
-          padding-bottom: 0;
-        }
-
-        .timeline-line {
-          position: absolute;
-          left: 15px;
-          top: 32px;
-          bottom: 0;
-          width: 2px;
-          background: var(--border);
-        }
-
-        .activity-icon {
-          width: 32px;
-          height: 32px;
-          border-radius: 50%;
-          background: var(--bg-peach);
-          color: var(--primary);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          position: relative;
-          z-index: 2;
-          font-size: 14px;
-        }
-
-        .activity-content {
-          flex: 1;
-          display: flex;
-          justify-content: space-between;
-          align-items: flex-start;
-        }
-
-        .activity-time {
-          font-weight: 700;
-          font-size: 14px;
-          color: var(--primary);
-          margin-bottom: 4px;
-        }
-
-        .activity-name {
-          font-size: 18px;
-          font-weight: 700;
-          margin-bottom: 4px;
-        }
-
-        .activity-type {
-          font-size: 13px;
-          color: var(--text-muted);
-          font-weight: 500;
-        }
-
-        .activity-cost {
-          font-weight: 700;
-          font-size: 16px;
-        }
-
-        .action-btns {
-          display: flex;
-          gap: 16px;
-        }
-
-        .btn-sm {
-          padding: 8px 16px;
-          border-radius: 100px;
-          font-weight: 600;
-          font-size: 13px;
-          text-decoration: none;
-          transition: all 0.2s;
-        }
-
-        .btn-outline {
-          border: 1px solid var(--border);
-          color: var(--text-dark);
-        }
-
-        .btn-primary-sm {
-          background: var(--primary);
-          color: white;
-          box-shadow: 0 4px 10px rgba(255, 107, 107, 0.2);
-        }
+        :root { --bg-cream:#fffcf9; --bg-peach:#fff0e6; --text-dark:#2b2d42; --text-muted:#8d99ae; --primary:#ff6b6b; --primary-hover:#fa5252; --secondary:#a9a6ff; --border:#f1f3f5; --radius-lg:24px; --radius-md:16px; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Outfit', sans-serif; background-color: var(--bg-cream); color: var(--text-dark); }
+        .main-content { padding: 40px 60px; background: linear-gradient(135deg, var(--bg-cream) 0%, var(--bg-peach) 100%); min-height: 100vh; }
+        .topbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px; }
+        .breadcrumb { display: inline-flex; align-items: center; gap: 8px; color: var(--text-muted); text-decoration: none; font-weight: 600; font-size: 14px; margin-bottom: 8px; }
+        .page-title { font-family: 'Cormorant Garamond', serif; font-size: 36px; font-weight: 700; }
+        .page-subtitle { color: var(--text-muted); margin-top: 8px; }
+        .view-controls { display: flex; background: white; padding: 4px; border-radius: 100px; border: 1px solid var(--border); }
+        .view-btn { padding: 8px 16px; border-radius: 100px; border: none; font-family: inherit; font-weight: 600; font-size: 13px; cursor: pointer; background: transparent; color: var(--text-muted); }
+        .view-btn.active { background: var(--bg-peach); color: var(--primary); }
+        .itinerary-grid { display: grid; grid-template-columns: 240px 1fr; gap: 40px; }
+        .day-nav { position: sticky; top: 40px; height: fit-content; display: flex; flex-direction: column; gap: 12px; }
+        .day-nav-item, .itinerary-card, .state-card { padding: 20px; background: white; border-radius: var(--radius-md); box-shadow: 0 4px 12px rgba(0,0,0,0.02); border: 1px solid transparent; }
+        .itinerary-card { padding: 32px; margin-bottom: 24px; }
+        .activity-row { display: flex; gap: 20px; padding: 18px 0; border-bottom: 1px solid var(--border); }
+        .activity-row:last-child { border-bottom: none; }
+        .activity-dot { width: 36px; height: 36px; border-radius: 50%; background: var(--bg-peach); color: var(--primary); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .btn-primary { background: var(--primary); color: white; padding: 12px 24px; border-radius: 100px; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 15px rgba(255,107,107,0.3); border: none; cursor: pointer; }
+        .btn-primary:disabled, .btn-secondary:disabled { opacity: 0.7; cursor: not-allowed; }
+        .btn-secondary { background: white; color: var(--text-dark); padding: 10px 18px; border-radius: 100px; font-weight: 600; text-decoration: none; display: inline-flex; border: 1px solid var(--border); cursor: pointer; }
+        .input-field { width: 100%; border: 1px solid var(--border); background: #f8f9fa; border-radius: 12px; padding: 10px 12px; font-family: inherit; font-size: 14px; color: var(--text-dark); }
       `}} />
 
-      <div className="dash-layout">
-        <aside className="sidebar">
-          <Link href="/" className="logo">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="var(--primary)">
-              <path d="M12 2L2 22h20L12 2zm0 4.5l6.5 13h-13L12 6.5z"/>
-            </svg>
-            Traveloop
-          </Link>
-          <nav>
-            <Link href="/dashboard" className="nav-item">
-              <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>
-              Dashboard
-            </Link>
-            <Link href="/trips" className={`nav-item ${activeTab === 'trips' ? 'active' : ''}`}>
-              <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
-              My Trips
-            </Link>
-            <Link href="/search" className="nav-item">
-              <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><path d="M16.24 7.76l-2.12 6.36-6.36 2.12 2.12-6.36 6.36-2.12z"/></svg>
-              Explore
-            </Link>
-          </nav>
-        </aside>
-
-        <main className="main-content">
-          <motion.div variants={containerVariants} initial="hidden" animate="show">
-            <motion.div variants={itemVariants} className="topbar">
-              <div>
-                <Link href="/trips" className="breadcrumb">
-                  <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
-                  Back to Trips
-                </Link>
-                <h1 className="page-title">{trip?.title || 'Paris Getaway'}</h1>
+      <main className="main-content">
+        <motion.div variants={itemVariants} initial="hidden" animate="show">
+          <div className="topbar">
+            <div>
+              <Link href="/trips" className="breadcrumb">Back to Trips</Link>
+              <h1 className="page-title">{trip.title}</h1>
+              <p className="page-subtitle">{formatDateRange(trip.start_date, trip.end_date)} · {stops.length} Stops</p>
+              {trip.description && <p className="page-subtitle">{trip.description}</p>}
+            </div>
+            <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+              <div className="view-controls">
+                <button type="button" className={`view-btn ${viewMode === 'list' ? 'active' : ''}`} onClick={() => setViewMode('list')}>List</button>
+                <button type="button" className={`view-btn ${viewMode === 'calendar' ? 'active' : ''}`} onClick={() => setViewMode('calendar')}>Calendar</button>
               </div>
-              <div className="action-btns">
-                <div className="view-controls">
-                  <button className={`view-btn ${viewMode === 'list' ? 'active' : ''}`} onClick={() => setViewMode('list')}>List</button>
-                  <button className={`view-btn ${viewMode === 'calendar' ? 'active' : ''}`} onClick={() => setViewMode('calendar')}>Calendar</button>
+              <Link href={`/trips/${id}/edit`} className="btn-secondary">Edit</Link>
+              <Link href={`/trips/${id}/budget`} className="btn-primary">Budget</Link>
+            </div>
+          </div>
+
+          <div className="itinerary-grid">
+            <aside className="day-nav">
+              {relatedLoading && <div className="day-nav-item">Loading stops...</div>}
+              {!relatedLoading && stops.length === 0 && <div className="day-nav-item">No stops yet</div>}
+              {!relatedLoading && stops.map((stop) => (
+                <div key={stop.id} className="day-nav-item">
+                  <span>Stop {getStopOrder(stop) + 1}</span>
+                  <strong>{getStopTitle(stop)}</strong>
                 </div>
-                <Link href={`/trips/${params.id}/edit`} className="btn-sm btn-outline">Edit Itinerary</Link>
-                <Link href={`/trips/${params.id}/budget`} className="btn-sm btn-primary-sm">View Budget</Link>
+              ))}
+            </aside>
+
+            <section>
+              {relatedError && <p style={{ color: 'var(--primary)', marginBottom: 16 }}>{relatedError}</p>}
+              {stopError && <p style={{ color: 'var(--primary)', marginBottom: 16 }}>{stopError}</p>}
+              {activityError && <p style={{ color: 'var(--primary)', marginBottom: 16 }}>{activityError}</p>}
+
+              <div className="itinerary-card">
+                <h2 style={{ marginBottom: 16 }}>Add Stop</h2>
+                <form onSubmit={handleAddStop} style={{ display: 'flex', gap: 12 }}>
+                  <input name="location" type="text" className="input-field" placeholder="Location name" />
+                  <button type="submit" className="btn-primary" disabled={stopLoading || relatedLoading}>{stopLoading ? 'Saving...' : 'Add Stop'}</button>
+                </form>
+                {stopFormError && <p style={{ color: 'var(--primary)', marginTop: 12 }}>{stopFormError}</p>}
               </div>
-            </motion.div>
 
-            <div className="itinerary-grid">
-              {/* Day Selection Sidebar */}
-              <motion.div variants={itemVariants} className="day-nav">
-                {itinerary.map((day, i) => (
-                  <div key={i} className={`day-nav-item ${i === 0 ? 'active' : ''}`}>
-                    <div className="day-label">Day {day.day}</div>
-                    <div className="day-date">{day.date}</div>
-                  </div>
-                ))}
-                <div className="day-nav-item" style={{ justifyContent: 'center', borderStyle: 'dashed', borderColor: 'var(--primary)', color: 'var(--primary)' }}>
-                  <span style={{ fontWeight: 700 }}>+ Add Day</span>
-                </div>
-              </motion.div>
+              {!relatedLoading && stops.map((stop) => {
+                const activities = activitiesByStop[stop.id] || [];
 
-              {/* Itinerary Feed */}
-              <motion.div variants={itemVariants} className="itinerary-feed">
-                {itinerary.map((day, i) => (
-                  <div key={i} className="day-section">
-                    <header className="day-header">
+                return (
+                  <div key={stop.id} className="itinerary-card">
+                    <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
                       <div>
-                        <h2 className="day-title">Day {day.day} • {day.city}</h2>
-                        <p style={{ color: 'var(--text-muted)', fontSize: '14px', fontWeight: 500 }}>Wednesday, {day.date}</p>
+                        <h2 style={{ fontSize: 28 }}>{getStopTitle(stop)}</h2>
+                        <p style={{ color: 'var(--text-muted)' }}>Stop {getStopOrder(stop) + 1}</p>
                       </div>
-                      <span style={{ background: 'var(--accent-green-bg)', color: 'var(--accent-green)', padding: '6px 12px', borderRadius: '100px', fontSize: '12px', fontWeight: 700 }}>Active Day</span>
+                      <button type="button" className="btn-secondary" onClick={() => handleDeleteStop(stop.id)} disabled={stopLoading}>{stopLoading ? 'Saving...' : 'Delete Stop'}</button>
                     </header>
 
-                    <div className="activities-list">
-                      {day.activities.map((act, j) => (
-                        <div key={j} className="activity-block">
-                          {j < day.activities.length - 1 && <div className="timeline-line"></div>}
-                          <div className="activity-icon">
-                            {act.type === 'Stay' ? '🏨' : act.type === 'Food' ? '🍽️' : '🎡'}
-                          </div>
-                          <div className="activity-content">
-                            <div>
-                              <div className="activity-time">{act.time}</div>
-                              <h3 className="activity-name">{act.title}</h3>
-                              <div className="activity-type">{act.type} • Recommended 2h</div>
-                            </div>
-                            <div className="activity-cost">{act.cost}</div>
-                          </div>
+                    {activities.length === 0 && <p style={{ color: 'var(--text-muted)', marginBottom: 20 }}>No activities added yet.</p>}
+                    {activities.map((activity) => (
+                      <div key={activity.id} className="activity-row">
+                        <div className="activity-dot">+</div>
+                        <div style={{ flex: 1 }}>
+                          <h3 style={{ fontSize: 18 }}>{activity.title}</h3>
+                          <p style={{ color: 'var(--text-muted)' }}>{getActivityDescription(activity)}</p>
                         </div>
-                      ))}
-                    </div>
+                        <button type="button" className="btn-secondary" onClick={() => handleRemoveActivity(activity.id)} disabled={activityLoading}>{activityLoading ? 'Saving...' : 'Remove'}</button>
+                      </div>
+                    ))}
+
+                    <form onSubmit={(event) => handleAddActivity(event, stop.id)} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr auto', gap: 12, marginTop: 20 }}>
+                      <input name="title" type="text" className="input-field" placeholder="Activity name" />
+                      <input name="notes" type="text" className="input-field" placeholder="Duration or notes" />
+                      <button type="submit" className="btn-primary" disabled={activityLoading}>{activityLoading ? 'Saving...' : 'Add Activity'}</button>
+                      {activityFormErrors[stop.id] && <p style={{ color: 'var(--primary)', gridColumn: '1 / -1' }}>{activityFormErrors[stop.id]}</p>}
+                    </form>
                   </div>
-                ))}
-              </motion.div>
-            </div>
-          </motion.div>
-        </main>
-      </div>
+                );
+              })}
+            </section>
+          </div>
+        </motion.div>
+      </main>
     </>
   );
 }
