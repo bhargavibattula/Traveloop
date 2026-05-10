@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   Sparkles, MapPin, Clock, Navigation,
   RotateCcw, Zap, Info, Compass,
-  ChevronDown, ChevronRight, Utensils, Camera, Bus
+  ChevronDown, ChevronRight, Utensils, Camera, Bus, Luggage
 } from 'lucide-react';
 import PlannerMap from './PlannerMap';
 
@@ -29,6 +29,7 @@ const typeIcon = (type) => {
 
 export default function ProductionPlanner({ data, onRegenerate }) {
   const [selectedId, setSelectedId] = useState(null);
+  const [activeTab, setActiveTab] = useState('timeline'); // 'timeline' or 'kit'
   
   const itinerary = useMemo(() => data?.itinerary || [], [data]);
 
@@ -37,7 +38,11 @@ export default function ProductionPlanner({ data, onRegenerate }) {
     return Object.fromEntries(days.map(d => [d, true]));
   });
 
-  const handleSelect = (item) => setSelectedId(item?.id || null);
+  const handleSelect = (item) => {
+    setSelectedId(item?.id || null);
+    setActiveTab('timeline');
+  };
+
   const toggleDay = (day) => setExpandedDays(prev => ({ ...prev, [day]: !prev[day] }));
 
   const grouped = useMemo(() => {
@@ -62,6 +67,98 @@ export default function ProductionPlanner({ data, onRegenerate }) {
           color: ${T.navy};
           overflow: hidden;
         }
+
+        /* Tabs UI */
+        .tab-switcher {
+          display: flex;
+          background: ${T.cream};
+          padding: 4px;
+          border-radius: 12px;
+          margin-top: 16px;
+          border: 1px solid ${T.border};
+        }
+        .tab-btn {
+          flex: 1;
+          padding: 8px;
+          font-size: 11px;
+          font-weight: 800;
+          text-transform: uppercase;
+          letter-spacing: 1px;
+          border-radius: 8px;
+          border: none;
+          cursor: pointer;
+          transition: all 0.2s;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 6px;
+          color: ${T.muted};
+          background: transparent;
+        }
+        .tab-btn.active {
+          background: white;
+          color: ${T.coral};
+          box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+
+        /* Kit View */
+        .kit-view {
+          padding: 32px;
+          flex: 1;
+          overflow-y: auto;
+        }
+        .kit-section { margin-bottom: 40px; }
+        .kit-section h4 { 
+          font-size: 11px; 
+          font-weight: 900; 
+          text-transform: uppercase; 
+          letter-spacing: 1.5px; 
+          color: ${T.coral};
+          margin-bottom: 20px;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+        .kit-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 12px;
+        }
+        .kit-card {
+          background: ${T.cream};
+          padding: 16px;
+          border-radius: 16px;
+          font-size: 14px;
+          font-weight: 600;
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          border: 1px solid transparent;
+          transition: all 0.2s;
+        }
+        .kit-card:hover {
+          border-color: ${T.peach};
+          transform: translateY(-2px);
+        }
+        .kit-dot {
+          width: 6px;
+          height: 6px;
+          border-radius: 50%;
+          background: ${T.coral};
+        }
+
+        .suggestion-box {
+          background: white;
+          border: 1px solid ${T.border};
+          padding: 20px;
+          border-radius: 20px;
+          margin-bottom: 12px;
+          font-size: 14px;
+          line-height: 1.6;
+          display: flex;
+          gap: 12px;
+        }
+
         .tl-pane {
           width: 440px;
           flex-shrink: 0;
@@ -73,7 +170,7 @@ export default function ProductionPlanner({ data, onRegenerate }) {
           box-shadow: 8px 0 30px rgba(0,0,0,.04);
         }
         .tl-header {
-          padding: 32px 32px 24px;
+          padding: 32px 32px 20px;
           border-bottom: 1px solid ${T.border};
         }
         .tl-header h2 {
@@ -193,102 +290,150 @@ export default function ProductionPlanner({ data, onRegenerate }) {
       `}} />
 
       <div className="prod-root">
-        {/* LEFT: Timeline */}
+        {/* LEFT: Timeline & Kit */}
         <section className="tl-pane">
           <header className="tl-header">
-            <h2>{data.tripName}</h2>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h2>{data.tripName}</h2>
+              <div className="act-cost">{data.budget}</div>
+            </div>
             <div className="tl-badge"><Zap size={12} /> AI-Optimized Route</div>
-            <div className="tl-actions">
-              <button className="tl-btn tl-btn-primary" onClick={() => alert('Trip saved!')}>Save Trip</button>
-              <button className="tl-btn tl-btn-ghost" onClick={onRegenerate}><RotateCcw size={14} /> Regenerate</button>
+            
+            <div className="tab-switcher">
+              <button 
+                className={`tab-btn ${activeTab === 'timeline' ? 'active' : ''}`}
+                onClick={() => setActiveTab('timeline')}
+              >
+                <Clock size={14} /> Timeline
+              </button>
+              <button 
+                className={`tab-btn ${activeTab === 'kit' ? 'active' : ''}`}
+                onClick={() => setActiveTab('kit')}
+              >
+                <Luggage size={14} /> Trip Kit
+              </button>
             </div>
           </header>
 
           <div className="tl-feed">
-            {grouped.map(([day, activities]) => (
-              <div key={day}>
-                <div className="day-header" onClick={() => toggleDay(Number(day))}>
-                  {expandedDays[Number(day)] ? <ChevronDown size={16} color={T.coral} /> : <ChevronRight size={16} color={T.coral} />}
-                  <span className="day-label">Day {day}</span>
-                  <span className="day-city"><MapPin size={12} /> {activities[0]?.location?.name?.split(',').pop()?.trim()}</span>
+            {activeTab === 'timeline' ? (
+              grouped.map(([day, activities]) => (
+                <div key={day}>
+                  <div className="day-header" onClick={() => toggleDay(Number(day))}>
+                    {expandedDays[Number(day)] ? <ChevronDown size={16} color={T.coral} /> : <ChevronRight size={16} color={T.coral} />}
+                    <span className="day-label">Day {day}</span>
+                    <span className="day-city"><MapPin size={12} /> {activities[0]?.location?.name?.split(',').pop()?.trim()}</span>
+                  </div>
+
+                  {expandedDays[Number(day)] && activities.map((act, idx) => (
+                    <React.Fragment key={act.id}>
+                      <div
+                        className={`act-card ${selectedId === act.id ? 'selected' : ''}`}
+                        onClick={() => handleSelect(act)}
+                      >
+                        <div className="act-time-col">
+                          <div className="act-time">{dayjs(act.startTime).format('HH:mm')}</div>
+                          <div className="act-dur">{act.duration}m</div>
+                        </div>
+                        <div className="act-line"><div className="act-dot" /></div>
+                        <div className="act-body">
+                          <div className="act-title">{typeIcon(act.type)} {act.title}</div>
+                          <div className="act-loc"><MapPin size={12} /> {act.location.name}</div>
+                        </div>
+                        <div className="act-cost">{act.cost}</div>
+                      </div>
+
+                      {act.travelTimeToNext > 0 && idx < activities.length - 1 && (
+                        <div className="travel-gap">
+                          <Navigation size={12} color={T.coral} />
+                          {act.travelTimeToNext} min · {act.distanceToNext}
+                        </div>
+                      )}
+                    </React.Fragment>
+                  ))}
+                </div>
+              ))
+            ) : (
+              <div className="kit-view">
+                <div className="kit-section">
+                  <h4><Sparkles size={14} /> AI Smart Suggestions</h4>
+                  {data.suggestions?.map((s, i) => (
+                    <div key={i} className="suggestion-box">
+                      <div style={{ marginTop: 4 }}><Zap size={16} color={T.coral} /></div>
+                      <div>{s}</div>
+                    </div>
+                  ))}
                 </div>
 
-                {expandedDays[Number(day)] && activities.map((act, idx) => (
-                  <React.Fragment key={act.id}>
-                    <div
-                      className={`act-card ${selectedId === act.id ? 'selected' : ''}`}
-                      onClick={() => handleSelect(act)}
-                    >
-                      <div className="act-time-col">
-                        <div className="act-time">{dayjs(act.startTime).format('HH:mm')}</div>
-                        <div className="act-dur">{act.duration}m</div>
+                <div className="kit-section">
+                  <h4><Luggage size={14} /> Recommended Packing List</h4>
+                  <div className="kit-grid">
+                    {data.packingList?.map((item, i) => (
+                      <div key={i} className="kit-card">
+                        <div className="kit-dot" /> {item}
                       </div>
-                      <div className="act-line"><div className="act-dot" /></div>
-                      <div className="act-body">
-                        <div className="act-title">{typeIcon(act.type)} {act.title}</div>
-                        <div className="act-loc"><MapPin size={12} /> {act.location.name}</div>
-                      </div>
-                      <div className="act-cost">{act.cost}</div>
-                    </div>
+                    ))}
+                  </div>
+                </div>
 
-                    {act.travelTimeToNext > 0 && idx < activities.length - 1 && (
-                      <div className="travel-gap">
-                        <Navigation size={12} color={T.coral} />
-                        {act.travelTimeToNext} min · {act.distanceToNext}
-                      </div>
-                    )}
-                  </React.Fragment>
-                ))}
+                <div className="kit-section">
+                  <h4><Compass size={14} /> Cinematic Story</h4>
+                  <div className="ai-box" style={{ background: T.peach, border: 'none' }}>
+                    <div className="ai-text" style={{ fontStyle: 'italic' }}>{data.story}</div>
+                  </div>
+                </div>
               </div>
-            ))}
+            )}
           </div>
 
-          {/* Detail Drawer */}
+          {/* Detail Drawer (Only in Timeline Tab) */}
           <AnimatePresence mode="wait">
-            {selectedItem ? (
-              <motion.div
-                key={selectedItem.id}
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: 'auto', opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                transition={{ duration: 0.25 }}
-                className="detail-drawer"
-              >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
-                  <div>
-                    <div className="detail-title">{selectedItem.title}</div>
-                    <div className="detail-loc"><MapPin size={14} color={T.coral} /> {selectedItem.location.name}</div>
+            {activeTab === 'timeline' && (
+              selectedItem ? (
+                <motion.div
+                  key={selectedItem.id}
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: 'auto', opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.25 }}
+                  className="detail-drawer"
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
+                    <div>
+                      <div className="detail-title">{selectedItem.title}</div>
+                      <div className="detail-loc"><MapPin size={14} color={T.coral} /> {selectedItem.location.name}</div>
+                    </div>
+                    <div className="act-cost" style={{ fontSize: '13px', padding: '8px 16px' }}>{selectedItem.cost}</div>
                   </div>
-                  <div className="act-cost" style={{ fontSize: '13px', padding: '8px 16px' }}>{selectedItem.cost}</div>
-                </div>
-                <div className="ai-box">
-                  <div className="ai-label"><Sparkles size={12} /> Why This Order?</div>
-                  <div className="ai-text">{selectedItem.aiReason}</div>
-                </div>
-                {selectedItem.travelTimeToNext > 0 && (
-                  <div className="metric-row">
-                    <div className="metric-chip peach">
-                      <Navigation size={18} color={T.coral} />
-                      <div>
-                        <div className="metric-label" style={{ color: T.coral }}>Travel Time</div>
-                        <div className="metric-value">{selectedItem.travelTimeToNext} min</div>
+                  <div className="ai-box">
+                    <div className="ai-label"><Sparkles size={12} /> Why This Order?</div>
+                    <div className="ai-text">{selectedItem.aiReason}</div>
+                  </div>
+                  {selectedItem.travelTimeToNext > 0 && (
+                    <div className="metric-row">
+                      <div className="metric-chip peach">
+                        <Navigation size={18} color={T.coral} />
+                        <div>
+                          <div className="metric-label" style={{ color: T.coral }}>Travel Time</div>
+                          <div className="metric-value">{selectedItem.travelTimeToNext} min</div>
+                        </div>
+                      </div>
+                      <div className="metric-chip white">
+                        <Compass size={18} color={T.muted} />
+                        <div>
+                          <div className="metric-label" style={{ color: T.muted }}>Distance</div>
+                          <div className="metric-value">{selectedItem.distanceToNext}</div>
+                        </div>
                       </div>
                     </div>
-                    <div className="metric-chip white">
-                      <Compass size={18} color={T.muted} />
-                      <div>
-                        <div className="metric-label" style={{ color: T.muted }}>Distance</div>
-                        <div className="metric-value">{selectedItem.distanceToNext}</div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </motion.div>
-            ) : (
-              <div className="detail-empty">
-                <Info size={20} style={{ marginBottom: 8, opacity: 0.4 }} />
-                <p>Select an activity above to view<br />AI optimization reasoning.</p>
-              </div>
+                  )}
+                </motion.div>
+              ) : (
+                <div className="detail-empty">
+                  <Info size={20} style={{ marginBottom: 8, opacity: 0.4 }} />
+                  <p>Select an activity above to view<br />AI optimization reasoning.</p>
+                </div>
+              )
             )}
           </AnimatePresence>
         </section>
@@ -296,7 +441,7 @@ export default function ProductionPlanner({ data, onRegenerate }) {
         {/* RIGHT: Map */}
         <section className="map-pane">
           <PlannerMap
-            itinerary={data.itinerary}
+            itinerary={itinerary}
             center={data.center}
             selectedId={selectedId}
             onSelect={handleSelect}

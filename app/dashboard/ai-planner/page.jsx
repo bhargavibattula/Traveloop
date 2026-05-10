@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, Send, Loader2, Stars, ArrowLeft, Bot, Wand2, Compass, Luggage } from 'lucide-react';
+import { Sparkles, Send, Loader2, Stars, ArrowLeft, Bot, Wand2, Compass, Luggage, CheckCircle2, DollarSign } from 'lucide-react';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
 
@@ -359,11 +359,20 @@ export default function AIPlannerPage() {
               <Link href="/dashboard" className="nav-item">
                 <Compass size={20} /> Dashboard
               </Link>
+               <Link href="/dashboard/ai-features" className="nav-item">
+                <Sparkles size={20} /> AI Features
+              </Link>
               <Link href="/dashboard/ai-planner" className="nav-item active">
-                <Sparkles size={20} /> AI Planner
+                <Wand2 size={20} /> AI Planner
               </Link>
               <Link href="/trips" className="nav-item">
                 <Luggage size={20} /> My Trips
+              </Link>
+              <Link href="/dashboard/checklist" className="nav-item">
+                <CheckCircle2 size={20} /> Checklist
+              </Link>
+              <Link href="/dashboard/budget" className="nav-item">
+                <DollarSign size={20} /> Budgets
               </Link>
             </nav>
           </aside>
