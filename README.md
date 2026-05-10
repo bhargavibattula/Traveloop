@@ -66,10 +66,44 @@ graph TD
     E -->|Split View| F[Interactive Map]
     E -->|Split View| G[Logistics Timeline]
     D -->|Derive Preparation| H[Checklist & Budget Modules]
-    H -->|User Interaction| I[Persistence Layer / MongoDB]
+    H -->|User Interaction| I[Persistence Layer / Supabase]
+```
+
+### 🗺️ Technical Infrastructure Blueprint
+
+The following blueprint outlines the current and planned infrastructure for the Traveloop ecosystem:
+
+```text
+┌─────────────────────────────────────────────────────────────────────┐
+│                        PRESENTATION LAYER                           │
+│  Next.js 14 + Tailwind CSS  │  Served via Vercel CDN (Global)      │
+│  Leaflet.js (maps)  │  Lucide Icons  │  Framer Motion (UX)          │
+└────────────────────────────┬────────────────────────────────────────┘
+                             │ HTTPS REST + JSON / WebSockets
+                             ▼
+┌─────────────────────────────────────────────────────────────────────┐
+│                       APPLICATION LAYER                             │
+│  Next.js API Routes (Serverless) / Node.js Runtime                 │
+│  JWT Middleware  │  Auth Guard  │  Rate Limiting  │  CORS Policy     │
+│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────────────┐  │
+│  │  Auth    │  │  Trips   │  │   AI     │  │   Location/Util  │  │
+│  │ Service  │  │ Service  │  │ Service  │  │     Services     │  │
+│  └──────────┘  └──────────┘  └──────────┘  └──────────────────┘  │
+│                        Persistence Logic                            │
+└───────────┬──────────────────────────────────┬───────────────────-─┘
+            │                                  │
+            ▼                                  ▼
+┌─────────────────────────────────────────────────────────────────────┐
+│   DATA LAYER        │          │   EXTERNAL FREE SERVICES     │
+│  Supabase           │          │  Google Gemini Flash (AI)    │
+│  (PostgreSQL)       │          │  Cloudinary Free (media)     │
+│  Row Level Security │          │  OpenStreetMap (maps)        │
+│  Real-time Sync     │          │  Resend.com (email)          │
+└─────────────────────┘          └──────────────────────────────┘
 ```
 
 ---
+
 
 ## 💎 Why Traveloop? (Competitive Edge)
 
