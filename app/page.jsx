@@ -5,6 +5,7 @@ import Link from 'next/link';
 
 export default function LandingPage() {
   const [scrolled, setScrolled] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -72,6 +73,8 @@ export default function LandingPage() {
           display: flex;
           align-items: center;
           gap: 8px;
+          position: relative;
+          z-index: 1001;
         }
 
         .nav-links {
@@ -124,9 +127,35 @@ export default function LandingPage() {
           border: 1px solid #eee;
         }
 
-        .btn-secondary:hover {
-          transform: translateY(-2px);
-          box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+        /* Mobile Menu */
+        .mobile-menu-btn {
+          display: none;
+          background: none;
+          border: none;
+          cursor: pointer;
+          z-index: 1001;
+          padding: 8px;
+        }
+
+        .mobile-nav {
+          position: fixed;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background: white;
+          z-index: 1000;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          gap: 32px;
+          transform: translateY(-100%);
+          transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .mobile-nav.open {
+          transform: translateY(0);
         }
 
         /* Hero Section */
@@ -168,9 +197,7 @@ export default function LandingPage() {
           letter-spacing: -1px;
         }
 
-        .hero-title span {
-          color: var(--primary);
-        }
+        .hero-title span { color: var(--primary); }
 
         .hero-subtitle {
           color: var(--text-muted);
@@ -199,11 +226,7 @@ export default function LandingPage() {
           box-shadow: 0 20px 50px rgba(0,0,0,0.1);
         }
 
-        .hero-img {
-          width: 100%;
-          height: 100%;
-          object-fit: cover;
-        }
+        .hero-img { width: 100%; height: 100%; object-fit: cover; }
 
         .shape-circle {
           position: absolute;
@@ -260,7 +283,7 @@ export default function LandingPage() {
         .widget-item {
           flex: 1;
           padding: 16px 24px;
-          border-right: 1px solid #eee;
+          border-right: 1px solid #f1f3f5;
         }
         
         .widget-item:last-child { border: none; }
@@ -270,6 +293,7 @@ export default function LandingPage() {
           font-weight: 700;
           margin-bottom: 4px;
           color: var(--text-dark);
+          font-size: 13px;
         }
 
         .widget-input {
@@ -278,6 +302,7 @@ export default function LandingPage() {
           color: var(--text-muted);
           font-size: 14px;
           width: 100%;
+          background: transparent;
         }
 
         .widget-btn {
@@ -292,11 +317,9 @@ export default function LandingPage() {
           height: 100%;
         }
 
-        .widget-btn:hover { background: #8e8bff; }
-
         /* Section Global */
         .section {
-          padding: 120px 60px;
+          padding: 100px 60px;
           max-width: 1400px;
           margin: 0 auto;
         }
@@ -326,7 +349,7 @@ export default function LandingPage() {
         .features-grid {
           display: grid;
           grid-template-columns: repeat(3, 1fr);
-          gap: 40px;
+          gap: 32px;
         }
 
         .feature-card {
@@ -334,34 +357,13 @@ export default function LandingPage() {
           padding: 40px;
           border-radius: var(--radius-lg);
           box-shadow: 0 10px 30px rgba(0,0,0,0.03);
-          transition: transform 0.3s, box-shadow 0.3s;
+          transition: all 0.3s;
           border: 1px solid #f1f3f5;
         }
 
         .feature-card:hover {
           transform: translateY(-10px);
           box-shadow: 0 20px 40px rgba(0,0,0,0.08);
-        }
-
-        .feature-icon {
-          width: 64px;
-          height: 64px;
-          border-radius: 16px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          margin-bottom: 24px;
-        }
-
-        .feature-title {
-          font-size: 24px;
-          font-weight: 700;
-          margin-bottom: 12px;
-        }
-
-        .feature-desc {
-          color: var(--text-muted);
-          line-height: 1.6;
         }
 
         /* How it Works */
@@ -372,10 +374,7 @@ export default function LandingPage() {
           margin-bottom: 80px;
         }
 
-        .step-row:nth-child(even) {
-          flex-direction: row-reverse;
-        }
-
+        .step-row:nth-child(even) { flex-direction: row-reverse; }
         .step-content { flex: 1; }
         .step-visual { flex: 1; position: relative; }
 
@@ -418,9 +417,7 @@ export default function LandingPage() {
           transition: transform 0.5s;
         }
 
-        .dest-card:hover img {
-          transform: scale(1.1);
-        }
+        .dest-card:hover img { transform: scale(1.1); }
 
         .dest-overlay {
           position: absolute;
@@ -433,37 +430,16 @@ export default function LandingPage() {
           color: white;
         }
 
-        .dest-price {
-          background: var(--primary);
-          color: white;
-          padding: 4px 12px;
-          border-radius: 100px;
-          font-size: 12px;
-          font-weight: 700;
-          align-self: flex-start;
-          margin-bottom: 8px;
-        }
-
         /* CTA */
         .cta-section {
           background: var(--text-dark);
           color: white;
           text-align: center;
-          padding: 100px 20px;
+          padding: 80px 20px;
           border-radius: var(--radius-lg);
           margin: 0 60px 100px;
           position: relative;
           overflow: hidden;
-        }
-
-        .cta-shape {
-          position: absolute;
-          background: var(--secondary);
-          width: 300px;
-          height: 300px;
-          border-radius: 50%;
-          filter: blur(80px);
-          opacity: 0.5;
         }
 
         /* Footer */
@@ -476,51 +452,40 @@ export default function LandingPage() {
         .footer-grid {
           display: grid;
           grid-template-columns: 2fr 1fr 1fr 1fr;
-          gap: 60px;
+          gap: 40px;
           max-width: 1400px;
           margin: 0 auto 60px;
         }
 
-        .footer-col h4 {
-          font-size: 18px;
-          margin-bottom: 24px;
-        }
-
-        .footer-links {
-          list-style: none;
-        }
-
-        .footer-links li { margin-bottom: 12px; }
-        .footer-links a {
-          color: var(--text-muted);
-          text-decoration: none;
-          transition: color 0.2s;
-        }
-        .footer-links a:hover { color: var(--primary); }
-
-        .footer-bottom {
-          text-align: center;
-          color: var(--text-muted);
-          padding-top: 40px;
-          border-top: 1px solid #eee;
-        }
-
         @media (max-width: 1024px) {
-          .hero { flex-direction: column; padding-top: 120px; }
-          .hero-visual { width: 100%; margin-top: 60px; }
+          .navbar { padding: 15px 30px; }
+          .hero { flex-direction: column; padding: 140px 30px 100px; text-align: center; }
+          .hero-content { max-width: 100%; margin-bottom: 60px; }
+          .hero-title { font-size: 60px; }
+          .hero-subtitle { margin: 0 auto 40px; }
+          .hero-visual { width: 100%; height: 450px; }
+          .hero-image-wrapper { width: 350px; height: 420px; }
+          .shape-circle { width: 400px; height: 400px; }
           .booking-widget { position: relative; bottom: 0; transform: none; left: 0; width: 100%; margin-top: 40px; flex-wrap: wrap; }
+          .widget-item { border: none; border-bottom: 1px solid #f1f3f5; width: 100%; }
+          .widget-btn { width: 100%; padding: 20px; }
           .features-grid { grid-template-columns: 1fr; }
-          .step-row, .step-row:nth-child(even) { flex-direction: column; }
+          .step-row, .step-row:nth-child(even) { flex-direction: column; gap: 40px; }
           .dest-grid { grid-template-columns: repeat(2, 1fr); }
           .footer-grid { grid-template-columns: 1fr 1fr; }
         }
-        
+
         @media (max-width: 768px) {
           .nav-links { display: none; }
-          .hero-title { font-size: 48px; }
+          .mobile-menu-btn { display: block; }
+          .hero-title { font-size: 42px; }
+          .section { padding: 80px 24px; }
+          .section-title { font-size: 36px; }
           .dest-grid { grid-template-columns: 1fr; }
-          .footer-grid { grid-template-columns: 1fr; }
-          .cta-section { margin: 0 20px 60px; }
+          .footer-grid { grid-template-columns: 1fr; gap: 40px; }
+          .footer { padding: 60px 24px 30px; }
+          .cta-section { margin: 0 20px 80px; padding: 60px 20px; }
+          .cta-section h2 { font-size: 36px !important; }
         }
       `}} />
 
@@ -539,7 +504,21 @@ export default function LandingPage() {
           <Link href="/login" className="nav-link" style={{ fontWeight: 600 }}>Sign in</Link>
           <Link href="/register" className="btn-primary">Get Started</Link>
         </div>
+        <button className="mobile-menu-btn" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            {mobileMenuOpen ? <path d="M18 6L6 18M6 6l12 12" /> : <path d="M3 12h18M3 6h18M3 18h18" />}
+          </svg>
+        </button>
       </nav>
+
+      {/* Mobile Nav Overlay */}
+      <div className={`mobile-nav ${mobileMenuOpen ? 'open' : ''}`}>
+        <Link href="#features" className="nav-link" style={{ fontSize: '24px' }} onClick={() => setMobileMenuOpen(false)}>Features</Link>
+        <Link href="#how-it-works" className="nav-link" style={{ fontSize: '24px' }} onClick={() => setMobileMenuOpen(false)}>How it Works</Link>
+        <Link href="#destinations" className="nav-link" style={{ fontSize: '24px' }} onClick={() => setMobileMenuOpen(false)}>Destinations</Link>
+        <Link href="/login" className="nav-link" style={{ fontSize: '24px', fontWeight: 600 }} onClick={() => setMobileMenuOpen(false)}>Sign in</Link>
+        <Link href="/register" className="btn-primary" style={{ padding: '16px 40px', fontSize: '18px' }} onClick={() => setMobileMenuOpen(false)}>Get Started</Link>
+      </div>
 
       {/* Hero Section */}
       <section className="hero">
@@ -555,7 +534,7 @@ export default function LandingPage() {
           <p className="hero-subtitle">
             Traveloop is the intelligent SaaS platform for modern explorers. Design multi-city itineraries, track your budget, and manage bookings all in one beautiful workspace.
           </p>
-          <div style={{ display: 'flex', gap: '16px' }}>
+          <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', justifyContent: 'center' }}>
             <Link href="/register" className="btn-primary" style={{ padding: '16px 32px', fontSize: '18px' }}>
               Start Planning Free
             </Link>
@@ -567,17 +546,6 @@ export default function LandingPage() {
 
         <div className="hero-visual">
           <div className="shape-circle"></div>
-          
-          <div className="floating-card c1">
-            <span style={{ background: '#eef0ff', padding: '8px', borderRadius: '50%' }}>🛡️</span>
-            Safe and Secure
-          </div>
-          
-          <div className="floating-card c2">
-            <span style={{ background: '#fff0f0', padding: '8px', borderRadius: '50%' }}>💎</span>
-            Best Price Guarantee
-          </div>
-
           <div className="hero-image-wrapper">
             <img 
               src="https://images.unsplash.com/photo-1436491865332-7a61a109cc05?auto=format&fit=crop&q=80&w=800" 
@@ -585,9 +553,16 @@ export default function LandingPage() {
               className="hero-img"
             />
           </div>
+          <div className="floating-card c1">
+            <span style={{ background: '#eef0ff', padding: '8px', borderRadius: '50%' }}>🛡️</span>
+            Safe and Secure
+          </div>
+          <div className="floating-card c2">
+            <span style={{ background: '#fff0f0', padding: '8px', borderRadius: '50%' }}>💎</span>
+            Best Price Guarantee
+          </div>
         </div>
 
-        {/* Floating Booking Widget */}
         <div className="booking-widget">
           <div className="widget-item">
             <span className="widget-label">Destination</span>
@@ -610,7 +585,7 @@ export default function LandingPage() {
       </section>
 
       {/* Features Section */}
-      <section id="features" className="section" style={{ marginTop: '60px' }}>
+      <section id="features" className="section">
         <div className="section-header">
           <h2 className="section-title">Everything you need to plan the perfect trip</h2>
           <p className="section-subtitle">Replace your messy spreadsheets and scattered docs with a unified, intelligent travel workspace.</p>
@@ -618,27 +593,27 @@ export default function LandingPage() {
 
         <div className="features-grid">
           <div className="feature-card">
-            <div className="feature-icon" style={{ background: 'var(--accent-green)', color: '#0ca678' }}>
+            <div style={{ background: 'var(--accent-green)', color: '#0ca678', width: '64px', height: '64px', borderRadius: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '24px' }}>
               <svg width="28" height="28" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
             </div>
-            <h3 className="feature-title">Smart Itinerary Builder</h3>
-            <p className="feature-desc">Drag and drop cities, flights, and activities into a visual timeline. Traveloop automatically calculates travel times between stops.</p>
+            <h3 style={{ fontSize: '24px', fontWeight: 700, marginBottom: '12px' }}>Smart Itinerary Builder</h3>
+            <p style={{ color: 'var(--text-muted)', lineHeight: '1.6' }}>Drag and drop cities, flights, and activities into a visual timeline. Traveloop automatically calculates travel times between stops.</p>
           </div>
 
           <div className="feature-card">
-            <div className="feature-icon" style={{ background: '#fff0f0', color: '#ff6b6b' }}>
+            <div style={{ background: '#fff0f0', color: '#ff6b6b', width: '64px', height: '64px', borderRadius: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '24px' }}>
               <svg width="28" height="28" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
             </div>
-            <h3 className="feature-title">Real-time Budget Health</h3>
-            <p className="feature-desc">Set your budget limits and track expenses by category. Get intelligent alerts if your planned activities exceed your targets.</p>
+            <h3 style={{ fontSize: '24px', fontWeight: 700, marginBottom: '12px' }}>Real-time Budget Health</h3>
+            <p style={{ color: 'var(--text-muted)', lineHeight: '1.6' }}>Set your budget limits and track expenses by category. Get intelligent alerts if your planned activities exceed your targets.</p>
           </div>
 
           <div className="feature-card">
-            <div className="feature-icon" style={{ background: '#eef0ff', color: '#a9a6ff' }}>
+            <div style={{ background: '#eef0ff', color: '#a9a6ff', width: '64px', height: '64px', borderRadius: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '24px' }}>
               <svg width="28" height="28" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
             </div>
-            <h3 className="feature-title">Collaborative Planning</h3>
-            <p className="feature-desc">Invite friends and family to your workspace. Vote on activities, split costs seamlessly, and share the final itinerary link.</p>
+            <h3 style={{ fontSize: '24px', fontWeight: 700, marginBottom: '12px' }}>Collaborative Planning</h3>
+            <p style={{ color: 'var(--text-muted)', lineHeight: '1.6' }}>Invite friends and family to your workspace. Vote on activities, split costs seamlessly, and share the final itinerary link.</p>
           </div>
         </div>
       </section>
@@ -653,8 +628,8 @@ export default function LandingPage() {
         <div className="step-row">
           <div className="step-content">
             <div className="step-num">01</div>
-            <h3 className="feature-title" style={{ fontSize: '32px' }}>Define Your Journey</h3>
-            <p className="feature-desc" style={{ fontSize: '18px' }}>Start by entering your origin, desired destinations, and dates. Traveloop will instantly generate a structural skeleton for your trip.</p>
+            <h3 style={{ fontSize: '32px', fontWeight: 700, marginBottom: '16px' }}>Define Your Journey</h3>
+            <p style={{ fontSize: '18px', color: 'var(--text-muted)', lineHeight: '1.6' }}>Start by entering your origin, desired destinations, and dates. Traveloop will instantly generate a structural skeleton for your trip.</p>
           </div>
           <div className="step-visual">
             <img src="https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?auto=format&fit=crop&q=80&w=1000" alt="Map Planning" className="step-img" />
@@ -664,8 +639,8 @@ export default function LandingPage() {
         <div className="step-row">
           <div className="step-content">
             <div className="step-num">02</div>
-            <h3 className="feature-title" style={{ fontSize: '32px' }}>Curate Activities</h3>
-            <p className="feature-desc" style={{ fontSize: '18px' }}>Browse our integrated database of highly-rated experiences, restaurants, and hidden gems. Add them to specific days with a single click.</p>
+            <h3 style={{ fontSize: '32px', fontWeight: 700, marginBottom: '16px' }}>Curate Activities</h3>
+            <p style={{ fontSize: '18px', color: 'var(--text-muted)', lineHeight: '1.6' }}>Browse our integrated database of highly-rated experiences, restaurants, and hidden gems. Add them to specific days with a single click.</p>
           </div>
           <div className="step-visual">
             <img src="https://images.unsplash.com/photo-1517760444937-f6397edcbbcd?auto=format&fit=crop&q=80&w=1000" alt="Activities" className="step-img" />
@@ -675,8 +650,8 @@ export default function LandingPage() {
         <div className="step-row">
           <div className="step-content">
             <div className="step-num">03</div>
-            <h3 className="feature-title" style={{ fontSize: '32px' }}>Track & Go</h3>
-            <p className="feature-desc" style={{ fontSize: '18px' }}>As you finalize bookings, log the costs. Traveloop provides a live "Budget Health Score" so you know exactly where you stand before you board the plane.</p>
+            <h3 style={{ fontSize: '32px', fontWeight: 700, marginBottom: '16px' }}>Track & Go</h3>
+            <p style={{ fontSize: '18px', color: 'var(--text-muted)', lineHeight: '1.6' }}>As you finalize bookings, log the costs. Traveloop provides a live "Budget Health Score" so you know exactly where you stand before you board the plane.</p>
           </div>
           <div className="step-visual">
             <img src="https://images.unsplash.com/photo-1434626881859-194d67b2b86f?auto=format&fit=crop&q=80&w=1000" alt="Tracking" className="step-img" />
@@ -692,54 +667,33 @@ export default function LandingPage() {
         </div>
 
         <div className="dest-grid">
-          <div className="dest-card">
-            <img src="https://images.unsplash.com/photo-1499856871958-5b9627545d1a?auto=format&fit=crop&q=80&w=600" alt="Paris" />
-            <div className="dest-overlay">
-              <span className="dest-price">From $1,200</span>
-              <h3 style={{ fontSize: '24px' }}>Paris, France</h3>
-              <p style={{ opacity: 0.8, fontSize: '14px' }}>5 Days • 12 Activities</p>
+          {[
+            { name: 'Paris, France', price: '1,200', days: '5', acts: '12', img: 'https://images.unsplash.com/photo-1499856871958-5b9627545d1a?auto=format&fit=crop&q=80&w=600' },
+            { name: 'Tokyo, Japan', price: '2,100', days: '8', acts: '20', img: 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?auto=format&fit=crop&q=80&w=600' },
+            { name: 'Amalfi Coast, Italy', price: '1,800', days: '4', acts: '8', img: 'https://images.unsplash.com/photo-1533104816931-20fa691ff6ca?auto=format&fit=crop&q=80&w=600' },
+            { name: 'Dubai, UAE', price: '2,500', days: '6', acts: '15', img: 'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&q=80&w=600' }
+          ].map((dest) => (
+            <div key={dest.name} className="dest-card">
+              <img src={dest.img} alt={dest.name} />
+              <div className="dest-overlay">
+                <span style={{ background: 'var(--primary)', color: 'white', padding: '4px 12px', borderRadius: '100px', fontSize: '12px', fontWeight: 700, alignSelf: 'flex-start', marginBottom: '8px' }}>From ${dest.price}</span>
+                <h3 style={{ fontSize: '24px', fontWeight: 700 }}>{dest.name}</h3>
+                <p style={{ opacity: 0.8, fontSize: '14px' }}>{dest.days} Days • {dest.acts} Activities</p>
+              </div>
             </div>
-          </div>
-          <div className="dest-card">
-            <img src="https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?auto=format&fit=crop&q=80&w=600" alt="Tokyo" />
-            <div className="dest-overlay">
-              <span className="dest-price">From $2,100</span>
-              <h3 style={{ fontSize: '24px' }}>Tokyo, Japan</h3>
-              <p style={{ opacity: 0.8, fontSize: '14px' }}>8 Days • 20 Activities</p>
-            </div>
-          </div>
-          <div className="dest-card">
-            <img src="https://images.unsplash.com/photo-1533104816931-20fa691ff6ca?auto=format&fit=crop&q=80&w=600" alt="Amalfi Coast" />
-            <div className="dest-overlay">
-              <span className="dest-price">From $1,800</span>
-              <h3 style={{ fontSize: '24px' }}>Amalfi Coast, Italy</h3>
-              <p style={{ opacity: 0.8, fontSize: '14px' }}>4 Days • 8 Activities</p>
-            </div>
-          </div>
-          <div className="dest-card">
-            <img src="https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&q=80&w=600" alt="Dubai" />
-            <div className="dest-overlay">
-              <span className="dest-price">From $2,500</span>
-              <h3 style={{ fontSize: '24px' }}>Dubai, UAE</h3>
-              <p style={{ opacity: 0.8, fontSize: '14px' }}>6 Days • 15 Activities</p>
-            </div>
-          </div>
+          ))}
         </div>
       </section>
 
       {/* Final CTA */}
       <section className="cta-section">
-        <div className="cta-shape" style={{ top: '-100px', left: '-100px' }}></div>
-        <div className="cta-shape" style={{ bottom: '-100px', right: '-100px', background: 'var(--primary)' }}></div>
-        <div style={{ position: 'relative', zIndex: 10 }}>
-          <h2 style={{ fontSize: '56px', fontFamily: '"Cormorant Garamond", serif', marginBottom: '24px' }}>Ready to start your journey?</h2>
-          <p style={{ fontSize: '18px', opacity: 0.8, maxWidth: '600px', margin: '0 auto 40px' }}>
-            Join over 10,000 travelers who use Traveloop to design, manage, and budget their dream vacations seamlessly.
-          </p>
-          <Link href="/register" className="btn-primary" style={{ padding: '16px 40px', fontSize: '18px', background: 'white', color: 'var(--text-dark)' }}>
-            Create Your First Trip — It's Free
-          </Link>
-        </div>
+        <h2 style={{ fontSize: '56px', fontFamily: '"Cormorant Garamond", serif', marginBottom: '24px' }}>Ready to start your journey?</h2>
+        <p style={{ fontSize: '18px', opacity: 0.8, maxWidth: '600px', margin: '0 auto 40px' }}>
+          Join over 10,000 travelers who use Traveloop to design, manage, and budget their dream vacations seamlessly.
+        </p>
+        <Link href="/register" className="btn-primary" style={{ padding: '16px 40px', fontSize: '18px', background: 'white', color: 'var(--text-dark)' }}>
+          Create Your First Trip — It's Free
+        </Link>
       </section>
 
       {/* Footer */}
@@ -757,34 +711,31 @@ export default function LandingPage() {
             </p>
           </div>
           <div className="footer-col">
-            <h4>Product</h4>
-            <ul className="footer-links">
-              <li><Link href="#">Features</Link></li>
-              <li><Link href="#">Pricing</Link></li>
-              <li><Link href="#">Destinations</Link></li>
-              <li><Link href="#">Templates</Link></li>
-            </ul>
+            <h4 style={{ marginBottom: '20px' }}>Product</h4>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <Link href="#" style={{ color: 'var(--text-muted)', textDecoration: 'none' }}>Features</Link>
+              <Link href="#" style={{ color: 'var(--text-muted)', textDecoration: 'none' }}>Pricing</Link>
+              <Link href="#" style={{ color: 'var(--text-muted)', textDecoration: 'none' }}>Destinations</Link>
+            </div>
           </div>
           <div className="footer-col">
-            <h4>Resources</h4>
-            <ul className="footer-links">
-              <li><Link href="#">Help Center</Link></li>
-              <li><Link href="#">Travel Guides</Link></li>
-              <li><Link href="#">Community</Link></li>
-              <li><Link href="#">Blog</Link></li>
-            </ul>
+            <h4 style={{ marginBottom: '20px' }}>Company</h4>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <Link href="#" style={{ color: 'var(--text-muted)', textDecoration: 'none' }}>About Us</Link>
+              <Link href="#" style={{ color: 'var(--text-muted)', textDecoration: 'none' }}>Careers</Link>
+              <Link href="#" style={{ color: 'var(--text-muted)', textDecoration: 'none' }}>Privacy</Link>
+            </div>
           </div>
           <div className="footer-col">
-            <h4>Company</h4>
-            <ul className="footer-links">
-              <li><Link href="#">About Us</Link></li>
-              <li><Link href="#">Careers</Link></li>
-              <li><Link href="#">Privacy Policy</Link></li>
-              <li><Link href="#">Terms of Service</Link></li>
-            </ul>
+            <h4 style={{ marginBottom: '20px' }}>Social</h4>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <Link href="#" style={{ color: 'var(--text-muted)', textDecoration: 'none' }}>Twitter</Link>
+              <Link href="#" style={{ color: 'var(--text-muted)', textDecoration: 'none' }}>Instagram</Link>
+              <Link href="#" style={{ color: 'var(--text-muted)', textDecoration: 'none' }}>Facebook</Link>
+            </div>
           </div>
         </div>
-        <div className="footer-bottom">
+        <div style={{ textAlign: 'center', color: 'var(--text-muted)', paddingTop: '40px', borderTop: '1px solid #eee' }}>
           <p>&copy; 2026 Traveloop. All rights reserved.</p>
         </div>
       </footer>
