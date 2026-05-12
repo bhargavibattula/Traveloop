@@ -207,39 +207,8 @@ export default function AIFeaturesHub() {
           gap: 12px;
           color: ${T.coral};
         }
-
-        /* Nav Sidebar Override for Hub */
-        .hub-nav {
-          position: fixed;
-          left: 40px;
-          top: 40px;
-          z-index: 100;
-        }
-        .back-btn {
-          display: flex;
-          align-items: center;
-          gap: 12px;
-          padding: 12px 24px;
-          background: white;
-          border-radius: 16px;
-          font-weight: 700;
-          color: ${T.navy};
-          text-decoration: none;
-          box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-          transition: all 0.2s;
-        }
-        .back-btn:hover {
-          transform: translateX(-4px);
-          background: ${T.navy};
-          color: white;
-        }
       `}} />
 
-      <nav className="hub-nav">
-        <Link href="/dashboard" className="back-btn">
-          <Compass size={20} /> Dashboard
-        </Link>
-      </nav>
 
       <div className="hub-container">
         <header className="hub-header">
