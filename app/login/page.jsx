@@ -13,17 +13,40 @@ export default function Login() {
   async function handleSubmit(event) {
     event.preventDefault();
 
-    const { error } = await supabase.auth.signInWithPassword({
+    let { error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
 
+    // Fallback "Seed" logic for the requested admin credentials
+    if (error && email === 'admin@gmail.com' && password === 'Admin@123') {
+      const { error: signUpError } = await supabase.auth.signUp({
+        email,
+        password,
+      });
+      if (!signUpError) {
+        // Try logging in again after auto-signup
+        const { error: retryError } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
+        error = retryError;
+      } else {
+        error = signUpError;
+      }
+    }
+
     if (error) {
-      console.error('Login error:', error.message);
+      alert('Login failed: ' + error.message);
       return;
     }
 
-    router.push('/dashboard');
+    // Redirect based on role
+    if (email === 'admin@gmail.com') {
+      router.push('/admin');
+    } else {
+      router.push('/dashboard');
+    }
   }
 
   return (
