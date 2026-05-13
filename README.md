@@ -66,11 +66,11 @@ A centralized command hub enabling administrators to monitor, manage, and optimi
 #### 🔍 Admin Capabilities
 Administrators can efficiently manage:
 
-✅ **Users** — Monitor user activity, engagement, and platform usage.  
-✅ **Itineraries** — Track and oversee all generated travel plans.  
-✅ **System Health** — Verify backend services and AI systems are operational.  
-✅ **Security** — Monitor authentication and protected platform workflows.  
-✅ **Analytics** — Observe platform growth, budget trends, and live activity.
+✅ **Users** — Monitor user activity, engagement, and platform usage 
+✅ **Itineraries** — Track and oversee all generated travel plans 
+✅ **System Health** — Verify backend services and AI systems are operational
+✅ **Security** — Monitor authentication and protected platform workflows 
+✅ **Analytics** — Observe platform growth, budget trends, and live activity
 
 > **Traveloop Admin Dashboard is designed as a mission-control layer for operational intelligence, platform stability, and seamless ecosystem management.**
 ### 🎨 4. Design & Engineering Excellence
